@@ -33,7 +33,7 @@ public class Complaint {
     @Column(name = "contact_details", nullable = false, length = 100)
     private String contactDetails;
 
-    @Column(nullable = false, length = 20)
+    @Column(name = "complaint_status", nullable = false, length = 20)
     private String status = "PENDING"; // PENDING, IN_PROGRESS, RESOLVED, CLOSED
 
     @Column(name = "date_submitted", nullable = false)
