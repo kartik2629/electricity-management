@@ -35,9 +35,6 @@ public class AdminService {
     private ConnectionRequestRepository connectionRequestRepository;
 
     @Autowired
-    private ConnectionRequestRepository connectionRequestRepository;
-
-    @Autowired
     private NotificationService notificationService;
 
     @Autowired
