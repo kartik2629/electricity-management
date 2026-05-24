@@ -36,7 +36,7 @@ public class Bill {
     @Column(name = "late_fee", nullable = false)
     private double lateFee = 0.0;
 
-    @Column(name = "bill_status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     private String status = "UNPAID"; // PAID, UNPAID
 
     @Column(name = "payment_date")

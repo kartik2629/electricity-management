@@ -82,4 +82,19 @@ export class AdminService {
     const headers = this.authService.getAuthHeaders();
     return this.http.get(`${this.apiUrl}/dashboard-stats`, { headers });
   }
+
+  getPendingRequests(): Observable<any> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/connection-requests`, { headers });
+  }
+
+  approveConnection(requestId: string): Observable<any> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.post(`${this.apiUrl}/connection-requests/${requestId}/approve`, {}, { headers });
+  }
+
+  rejectConnection(requestId: string): Observable<any> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.post(`${this.apiUrl}/connection-requests/${requestId}/reject`, {}, { headers });
+  }
 }

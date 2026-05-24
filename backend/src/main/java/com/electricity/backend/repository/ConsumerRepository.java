@@ -29,7 +29,7 @@ public interface ConsumerRepository extends JpaRepository<Consumer, Long> {
     @Query("SELECT c FROM Consumer c WHERE " +
            "(:status = 'ALL' OR c.status = :status) AND " +
            "(:customerType = 'ALL' OR c.customerType = :customerType) AND " +
-           "(:search IS NULL OR :search = '' OR LOWER(c.consumerNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "(:search = '' OR LOWER(c.consumerNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(c.customer.customerId) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(c.customer.user.fullName) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Consumer> searchConsumersAdmin(

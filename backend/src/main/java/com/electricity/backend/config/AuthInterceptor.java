@@ -31,14 +31,21 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String tokenStr = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            tokenStr = authHeader.substring(7);
+        } else if (request.getParameter("token") != null) {
+            tokenStr = request.getParameter("token");
+        }
+
+        if (tokenStr == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"message\": \"Missing or invalid Authorization header.\"}");
+            response.getWriter().write("{\"message\": \"Missing or invalid Authorization header/token.\"}");
             return false;
         }
 
-        String tokenStr = authHeader.substring(7);
         SessionToken sessionToken = tokenRepository.findByToken(tokenStr).orElse(null);
 
         if (sessionToken == null) {

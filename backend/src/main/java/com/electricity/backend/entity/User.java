@@ -26,13 +26,13 @@ public class User {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(name = "user_role", nullable = false, length = 20)
+    @Column(name = "role", nullable = false, length = 20)
     private String role; // CUSTOMER, ADMIN, SME
 
     @Column(name = "is_first_login", nullable = false)
     private boolean isFirstLogin = true;
 
-    @Column(name = "user_status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     private String status = "ACTIVE"; // ACTIVE, INACTIVE
 
     @Column(name = "created_at")

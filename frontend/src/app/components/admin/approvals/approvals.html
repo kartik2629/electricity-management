@@ -1,0 +1,65 @@
+<div class="dashboard-header">
+  <div class="header-content">
+    <h2>Pending Connection Approvals</h2>
+    <p class="subtitle">Review and approve new consumer registration requests</p>
+  </div>
+</div>
+
+<div class="content-body">
+  @if (errorMessage()) {
+    <div class="alert alert-danger">
+      <i class="fa-solid fa-circle-exclamation"></i> {{ errorMessage() }}
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="glass-card loading-state">
+      <i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
+      <p>Loading pending requests...</p>
+    </div>
+  } @else if (requests().length === 0) {
+    <div class="glass-card empty-state">
+      <div class="empty-icon">
+        <i class="fa-solid fa-clipboard-check"></i>
+      </div>
+      <h3>All Caught Up!</h3>
+      <p>There are currently no pending connection requests requiring approval.</p>
+    </div>
+  } @else {
+    <div class="table-container glass-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Request ID</th>
+            <th>Date</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Requested Consumer No</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (req of requests(); track req.requestId) {
+            <tr>
+              <td class="font-monospace text-secondary">{{ req.requestId }}</td>
+              <td>{{ req.createdAt | date:'shortDate' }}</td>
+              <td>{{ req.user.userId }}</td>
+              <td>{{ req.user.fullName }}</td>
+              <td class="font-heading font-monospace">{{ req.consumerNo }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-outline-success" (click)="approve(req.requestId)" title="Approve Request">
+                    <i class="fa-solid fa-check"></i> Approve
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="reject(req.requestId)" title="Reject Request">
+                    <i class="fa-solid fa-xmark"></i> Reject
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { SmeService } from '../../services/sme.service';
 import { ThemeService } from '../../services/theme.service';
+import { NotificationsComponent } from '../shared/notifications/notifications';
 
 @Component({
   selector: 'app-sme',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet, FormsModule],
+  imports: [CommonModule, RouterLink, RouterOutlet, FormsModule, NotificationsComponent],
   templateUrl: './sme.html',
   styleUrl: './sme.css'
 })

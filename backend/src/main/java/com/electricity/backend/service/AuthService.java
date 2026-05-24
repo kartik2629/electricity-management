@@ -25,6 +25,9 @@ public class AuthService {
     private ConsumerRepository consumerRepository;
 
     @Autowired
+    private ConnectionRequestRepository connectionRequestRepository;
+
+    @Autowired
     private SessionTokenRepository tokenRepository;
 
     @Autowired
@@ -66,7 +69,7 @@ public class AuthService {
             "CUSTOMER"
         );
         user.setFirstLogin(true);
-        user.setStatus("ACTIVE");
+        user.setStatus("PENDING_APPROVAL");
         user = userRepository.save(user);
 
         // 7. Create Customer with Random Customer ID
@@ -74,14 +77,18 @@ public class AuthService {
         Customer customer = new Customer(randomCustomerId, user);
         customer = customerRepository.save(customer);
 
-        // 8. Link Consumer to Customer and update consumer details from registration form
-        consumer.setCustomer(customer);
+        // 8. Update consumer details but DO NOT link to customer yet
         consumer.setAddress(request.getAddress());
         consumer.setContactPhone(request.getMobileNumber());
         consumer.setContactEmail(request.getEmail());
         consumer.setCustomerType(request.getCustomerType().toUpperCase());
         consumer.setElectricalSection(request.getElectricalSection().toUpperCase());
         consumerRepository.save(consumer);
+
+        // 9. Create Connection Request for Admin approval
+        String requestId = "REQ-" + java.time.LocalDate.now().getYear() + "-" + String.format("%06d", (int)(Math.random() * 1000000));
+        ConnectionRequest connReq = new ConnectionRequest(requestId, user, request.getConsumerNo(), "PENDING");
+        connectionRequestRepository.save(connReq);
 
         return new RegisterResponse(customer.getCustomerId(), user.getFullName(), user.getEmail());
     }
@@ -91,8 +98,8 @@ public class AuthService {
         User user = userRepository.findByUserId(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password."));
 
-        if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
-            throw new IllegalArgumentException("User account is inactive.");
+        if (!"ACTIVE".equalsIgnoreCase(user.getStatus()) && !"PENDING_APPROVAL".equalsIgnoreCase(user.getStatus())) {
+            throw new IllegalArgumentException("User account is inactive or rejected.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -120,7 +127,8 @@ public class AuthService {
             user.getFullName(),
             user.getEmail(),
             customerId,
-            user.isFirstLogin()
+            user.isFirstLogin(),
+            user.getStatus()
         );
     }
 

@@ -38,6 +38,9 @@ public class CustomerService {
     @Autowired
     private ComplaintRepository complaintRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public Customer getProfile(User user) {
         return customerRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Customer profile not found."));
@@ -127,6 +130,8 @@ public class CustomerService {
                 .map(b -> new TransactionResponse.PaidBillInfo(b.getBillId(), b.getBillingPeriod(), b.getBillAmount(), b.getLateFee()))
                 .collect(Collectors.toList());
 
+        notificationService.sendToRole("ADMIN", "Payment received from " + user.getUserId() + " for amount ₹" + totalAmount, "SUCCESS");
+
         return new TransactionResponse(
                 txn.getPaymentId(),
                 txn.getTransactionId(),
@@ -213,7 +218,11 @@ public class CustomerService {
         complaint.setLastUpdatedDate(LocalDateTime.now());
         complaint.setEstimatedResolutionTime(estTime);
 
-        return complaintRepository.save(complaint);
+        Complaint savedComplaint = complaintRepository.save(complaint);
+        
+        notificationService.sendToRole("ADMIN", "New complaint lodged by " + user.getUserId() + " (" + savedComplaint.getComplaintId() + ")", "WARNING");
+        
+        return savedComplaint;
     }
 
     public List<Complaint> getComplaints(User user) {

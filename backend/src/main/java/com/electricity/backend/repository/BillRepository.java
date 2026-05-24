@@ -27,7 +27,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     List<Bill> findByConsumerCustomerUserUserIdAndStatusAndBillDateBetween(String userId, String status, LocalDate start, LocalDate end);
 
     @Query("SELECT b FROM Bill b WHERE " +
-           "(:consumerNo IS NULL OR :consumerNo = '' OR b.consumer.consumerNo = :consumerNo) AND " +
+           "(:consumerNo = '' OR b.consumer.consumerNo = :consumerNo) AND " +
            "(:status = 'ALL' OR b.status = :status)")
     Page<Bill> findAllAdmin(
             @Param("consumerNo") String consumerNo,

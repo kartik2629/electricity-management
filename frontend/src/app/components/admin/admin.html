@@ -5,6 +5,7 @@
       <div class="brand">
         <i class="fa-solid fa-screwdriver-wrench text-warning"></i>
         <span>Voltaic Admin</span>
+        <app-notifications style="margin-left: auto;"></app-notifications>
       </div>
       <nav class="nav-menu">
         <a [routerLink]="['/admin/overview']" routerLinkActive="active" class="nav-item">
@@ -12,6 +13,9 @@
         </a>
         <a [routerLink]="['/admin/consumers']" routerLinkActive="active" class="nav-item">
           <i class="fa-solid fa-plug"></i> Manage Connections
+        </a>
+        <a [routerLink]="['/admin/approvals']" routerLinkActive="active" class="nav-item">
+          <i class="fa-solid fa-user-check"></i> Pending Approvals
         </a>
         <a [routerLink]="['/admin/add-customer']" routerLinkActive="active" class="nav-item">
           <i class="fa-solid fa-user-plus"></i> Register Customer

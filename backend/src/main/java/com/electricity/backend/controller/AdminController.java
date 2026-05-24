@@ -20,6 +20,23 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    @GetMapping("/connection-requests")
+    public ResponseEntity<List<ConnectionRequest>> getPendingRequests() {
+        return ResponseEntity.ok(adminService.getPendingRequests());
+    }
+
+    @PostMapping("/connection-requests/{id}/approve")
+    public ResponseEntity<Map<String, String>> approveConnection(@PathVariable String id) {
+        adminService.approveConnection(id);
+        return ResponseEntity.ok(Map.of("message", "Connection request approved successfully."));
+    }
+
+    @PostMapping("/connection-requests/{id}/reject")
+    public ResponseEntity<Map<String, String>> rejectConnection(@PathVariable String id) {
+        adminService.rejectConnection(id);
+        return ResponseEntity.ok(Map.of("message", "Connection request rejected."));
+    }
+
     @PostMapping("/customers")
     public ResponseEntity<Map<String, Object>> addCustomer(@Valid @RequestBody User userDetails) {
         Map<String, Object> response = adminService.addCustomer(userDetails);

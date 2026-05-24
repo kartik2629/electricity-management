@@ -32,7 +32,67 @@ public class AdminService {
     private ComplaintRepository complaintRepository;
 
     @Autowired
+    private ConnectionRequestRepository connectionRequestRepository;
+
+    @Autowired
+    private ConnectionRequestRepository connectionRequestRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public List<ConnectionRequest> getPendingRequests() {
+        return connectionRequestRepository.findByStatusOrderByCreatedAtDesc("PENDING");
+    }
+
+    @Transactional
+    public void approveConnection(String requestId) {
+        ConnectionRequest req = connectionRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found."));
+
+        if (!"PENDING".equalsIgnoreCase(req.getStatus())) {
+            throw new IllegalArgumentException("Request is already " + req.getStatus());
+        }
+
+        User user = req.getUser();
+        user.setStatus("ACTIVE");
+        userRepository.save(user);
+
+        req.setStatus("APPROVED");
+        connectionRequestRepository.save(req);
+
+        Customer customer = customerRepository.findByUserUserId(user.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Customer record missing."));
+
+        Consumer consumer = consumerRepository.findByConsumerNo(req.getConsumerNo())
+                .orElseThrow(() -> new IllegalArgumentException("Consumer record missing."));
+
+        consumer.setCustomer(customer);
+        consumerRepository.save(consumer);
+
+        notificationService.sendToUser(user.getUserId(), "Your connection request has been APPROVED! You can now access your dashboard.", "SUCCESS");
+    }
+
+    @Transactional
+    public void rejectConnection(String requestId) {
+        ConnectionRequest req = connectionRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found."));
+
+        if (!"PENDING".equalsIgnoreCase(req.getStatus())) {
+            throw new IllegalArgumentException("Request is already " + req.getStatus());
+        }
+
+        req.setStatus("REJECTED");
+        connectionRequestRepository.save(req);
+
+        User user = req.getUser();
+        user.setStatus("REJECTED");
+        userRepository.save(user);
+
+        notificationService.sendToUser(user.getUserId(), "Your connection request was REJECTED.", "ERROR");
+    }
 
     @Transactional
     public Map<String, Object> addCustomer(User userDetails) {
@@ -77,8 +137,10 @@ public class AdminService {
     }
 
     public List<Customer> searchCustomers(String query) {
-        String searchStr = (query == null || query.trim().isEmpty()) ? null : query.trim();
-        return customerRepository.searchCustomers(searchStr);
+        if (query == null || query.trim().isEmpty()) {
+            return customerRepository.findAll();
+        }
+        return customerRepository.searchCustomers(query);
     }
 
     @Transactional
@@ -113,7 +175,7 @@ public class AdminService {
     public Page<Consumer> getConsumers(String status, String customerType, String search, Pageable pageable) {
         String stat = (status == null || status.trim().isEmpty()) ? "ALL" : status.trim();
         String type = (customerType == null || customerType.trim().isEmpty()) ? "ALL" : customerType.trim();
-        String query = (search == null || search.trim().isEmpty()) ? null : search.trim();
+        String query = (search == null || search.trim().isEmpty()) ? "" : search.trim();
         return consumerRepository.searchConsumersAdmin(stat, type, query, pageable);
     }
 
@@ -168,14 +230,14 @@ public class AdminService {
 
     public Page<Bill> getBills(String consumerNo, String status, Pageable pageable) {
         String stat = (status == null || status.trim().isEmpty()) ? "ALL" : status.trim();
-        String cNo = (consumerNo == null || consumerNo.trim().isEmpty()) ? null : consumerNo.trim();
+        String cNo = (consumerNo == null || consumerNo.trim().isEmpty()) ? "" : consumerNo.trim();
         return billRepository.findAllAdmin(cNo, stat, pageable);
     }
 
     public List<Complaint> getComplaints(String status, String complaintId, String smeId) {
         String stat = (status == null || status.trim().isEmpty()) ? "ALL" : status.trim();
-        String compId = (complaintId == null || complaintId.trim().isEmpty()) ? null : complaintId.trim();
-        String sme = (smeId == null || smeId.trim().isEmpty()) ? null : smeId.trim();
+        String compId = (complaintId == null || complaintId.trim().isEmpty()) ? "" : complaintId.trim();
+        String sme = (smeId == null || smeId.trim().isEmpty()) ? "" : smeId.trim();
         return complaintRepository.searchComplaintsAdmin(stat, compId, sme);
     }
 
@@ -200,7 +262,11 @@ public class AdminService {
             complaint.setStatus("IN_PROGRESS");
         }
 
-        return complaintRepository.save(complaint);
+        Complaint saved = complaintRepository.save(complaint);
+        
+        notificationService.sendToUser(smeUserId, "You have been assigned a new complaint: " + complaintId, "INFO");
+        
+        return saved;
     }
 
     public Map<String, Object> getDashboardStats() {

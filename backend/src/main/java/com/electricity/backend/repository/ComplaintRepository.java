@@ -33,8 +33,8 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
 
     @Query("SELECT c FROM Complaint c WHERE " +
            "(:status = 'ALL' OR c.status = :status) AND " +
-           "(:complaintId IS NULL OR :complaintId = '' OR LOWER(c.complaintId) = LOWER(:complaintId)) AND " +
-           "(:smeId IS NULL OR :smeId = '' OR c.assignedSme.userId = :smeId)")
+           "(:complaintId = '' OR LOWER(c.complaintId) = LOWER(:complaintId)) AND " +
+           "(:smeId = '' OR c.assignedSme.userId = :smeId)")
     List<Complaint> searchComplaintsAdmin(
             @Param("status") String status,
             @Param("complaintId") String complaintId,

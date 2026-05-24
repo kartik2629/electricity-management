@@ -15,8 +15,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Optional<Customer> findByUserUserId(String userId);
     List<Customer> findByUserFullNameContainingIgnoreCase(String name);
 
-    @Query("SELECT c FROM Customer c WHERE :query IS NULL " +
-           "OR LOWER(c.customerId) LIKE LOWER(CONCAT('%', :query, '%')) " +
+    @Query("SELECT c FROM Customer c WHERE " +
+           "LOWER(c.customerId) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(c.user.userId) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(c.user.fullName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(c.user.email) LIKE LOWER(CONCAT('%', :query, '%'))")

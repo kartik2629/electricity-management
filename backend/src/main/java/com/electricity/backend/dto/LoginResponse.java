@@ -8,10 +8,11 @@ public class LoginResponse {
     private String email;
     private String customerId;
     private boolean isFirstLogin;
+    private String status;
 
     public LoginResponse() {}
 
-    public LoginResponse(String token, String userId, String role, String fullName, String email, String customerId, boolean isFirstLogin) {
+    public LoginResponse(String token, String userId, String role, String fullName, String email, String customerId, boolean isFirstLogin, String status) {
         this.token = token;
         this.userId = userId;
         this.role = role;
@@ -19,6 +20,7 @@ public class LoginResponse {
         this.email = email;
         this.customerId = customerId;
         this.isFirstLogin = isFirstLogin;
+        this.status = status;
     }
 
     public String getToken() { return token; }
@@ -40,5 +42,8 @@ public class LoginResponse {
     public void setCustomerId(String customerId) { this.customerId = customerId; }
 
     public boolean isFirstLogin() { return isFirstLogin; }
-    public void setFirstLogin(boolean firstLogin) { isFirstLogin = isFirstLogin; }
+    public void setFirstLogin(boolean firstLogin) { this.isFirstLogin = firstLogin; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

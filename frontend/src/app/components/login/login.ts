@@ -71,6 +71,10 @@ export class Login {
           this.tempSessionData.set(res);
           this.showChangePasswordPrompt.set(true);
           this.changePasswordForm.patchValue({ oldPassword: credentials.password });
+        } else if (res.status === 'PENDING_APPROVAL') {
+          localStorage.setItem('user_session', JSON.stringify(res));
+          this.authService.currentUser.set(res);
+          this.router.navigate(['/waiting']);
         } else {
           this.redirectByRole(res.role);
         }
@@ -100,7 +104,12 @@ export class Login {
         session.isFirstLogin = false;
         localStorage.setItem('user_session', JSON.stringify(session));
         this.authService.currentUser.set(session);
-        this.redirectByRole(session.role);
+        
+        if (session.status === 'PENDING_APPROVAL') {
+          this.router.navigate(['/waiting']);
+        } else {
+          this.redirectByRole(session.role);
+        }
       },
       error: (err) => {
         this.isSubmitting.set(false);

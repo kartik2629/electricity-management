@@ -1,0 +1,67 @@
+<div class="notifications-wrapper">
+  <!-- Bell Icon -->
+  <button class="bell-btn" (click)="toggleDropdown()" [class.active]="isDropdownOpen">
+    <i class="fa-solid fa-bell"></i>
+    @if (notificationService.unreadCount() > 0) {
+      <span class="badge">{{ notificationService.unreadCount() }}</span>
+    }
+  </button>
+
+  <!-- Dropdown -->
+  @if (isDropdownOpen) {
+    <div class="notifications-dropdown glass-card">
+      <div class="dropdown-header">
+        <h3>Notifications</h3>
+        @if (notificationService.unreadCount() > 0) {
+          <button class="btn-link" (click)="markAllAsRead()">Mark all read</button>
+        }
+      </div>
+      
+      <div class="dropdown-body">
+        @if (notificationService.notifications().length === 0) {
+          <div class="empty-notifs">
+            <i class="fa-regular fa-bell-slash"></i>
+            <p>No notifications yet</p>
+          </div>
+        } @else {
+          <div class="notif-list">
+            @for (notif of notificationService.notifications(); track notif.id) {
+              <div class="notif-item" [class.unread]="!notif.read" (click)="markAsRead(notif.id)">
+                <div class="notif-icon" [ngClass]="notif.type.toLowerCase()">
+                  @if (notif.type === 'SUCCESS') { <i class="fa-solid fa-circle-check"></i> }
+                  @if (notif.type === 'WARNING') { <i class="fa-solid fa-triangle-exclamation"></i> }
+                  @if (notif.type === 'INFO') { <i class="fa-solid fa-circle-info"></i> }
+                  @if (notif.type === 'ERROR') { <i class="fa-solid fa-circle-xmark"></i> }
+                </div>
+                <div class="notif-content">
+                  <p>{{ notif.message }}</p>
+                  <span class="time">{{ notif.timestamp | date:'shortTime' }}</span>
+                </div>
+                @if (!notif.read) {
+                  <div class="unread-dot"></div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Toasts Container (Fixed to screen) -->
+<div class="toast-container">
+  @for (toast of notificationService.activeToasts(); track toast.id) {
+    <div class="toast-item glass-card" [ngClass]="toast.type.toLowerCase()">
+      <div class="toast-icon">
+        @if (toast.type === 'SUCCESS') { <i class="fa-solid fa-circle-check"></i> }
+        @if (toast.type === 'WARNING') { <i class="fa-solid fa-triangle-exclamation"></i> }
+        @if (toast.type === 'INFO') { <i class="fa-solid fa-circle-info"></i> }
+        @if (toast.type === 'ERROR') { <i class="fa-solid fa-circle-xmark"></i> }
+      </div>
+      <div class="toast-content">
+        <p>{{ toast.message }}</p>
+      </div>
+    </div>
+  }
+</div>

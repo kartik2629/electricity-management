@@ -31,7 +31,7 @@ public class Transaction {
     @Column(name = "transaction_amount", nullable = false)
     private double transactionAmount;
 
-    @Column(name = "transaction_status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     private String transactionStatus; // SUCCESS, FAILED
 
     @ManyToMany(fetch = FetchType.EAGER)

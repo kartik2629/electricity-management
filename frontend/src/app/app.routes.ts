@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './components/login/login';
 import { Register } from './components/register/register';
+import { Waiting } from './components/waiting/waiting';
 import { Home } from './components/home/home';
 import { Dashboard } from './components/home/dashboard/dashboard';
 import { BillsList } from './components/home/bills/bills';
@@ -18,6 +19,7 @@ import { AdminAddConsumer } from './components/admin/add-consumer/add-consumer';
 import { AdminBillsList } from './components/admin/bills/bills';
 import { AdminComplaintsList } from './components/admin/complaints/complaints';
 import { AdminOverview } from './components/admin/overview/overview';
+import { AdminApprovals } from './components/admin/approvals/approvals';
 import { SmeDashboard } from './components/sme/sme';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
@@ -25,6 +27,7 @@ import { roleGuard } from './guards/role.guard';
 export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  { path: 'waiting', component: Waiting },
   { 
     path: 'home', 
     component: Home,
@@ -51,6 +54,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: AdminOverview },
       { path: 'consumers', component: AdminConsumersList },
+      { path: 'approvals', component: AdminApprovals },
       { path: 'add-customer', component: AdminAddCustomer },
       { path: 'add-consumer', component: AdminAddConsumer },
       { path: 'bills', component: AdminBillsList },

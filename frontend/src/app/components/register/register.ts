@@ -27,6 +27,7 @@ export class Register {
       fullName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s]+$/), Validators.maxLength(50)]],
       address: ['', [Validators.required, Validators.minLength(10)]],
       email: ['', [Validators.required, Validators.email]],
+      countryCode: ['+91', [Validators.required]],
       mobileNumber: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
       customerType: ['RESIDENTIAL', [Validators.required]],
       electricalSection: ['OFFICE', [Validators.required]],
@@ -58,7 +59,11 @@ export class Register {
     }
 
     this.isSubmitting.set(true);
-    this.authService.register(this.registerForm.value).subscribe({
+    const formValues = { ...this.registerForm.value };
+    formValues.mobileNumber = formValues.countryCode + '-' + formValues.mobileNumber;
+    delete formValues.countryCode;
+
+    this.authService.register(formValues).subscribe({
       next: (res) => {
         this.isSubmitting.set(false);
         this.successData.set(res);
