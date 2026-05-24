@@ -1,0 +1,182 @@
+<div class="pay-wrapper">
+  @if (!paymentCompleted()) {
+    <!-- Payment Entry View -->
+    <div class="view-header">
+      <h2><i class="fa-solid fa-credit-card"></i> Pay Invoice</h2>
+      <p>Provide payment details to process outstanding dues of <strong>${{ grandTotal() | number:'1.2-2' }}</strong>.</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <div class="payment-form-container">
+      <div class="glass-card form-card">
+        <!-- Payment Mode: CARD -->
+        @if (paymentMode() === 'CARD') {
+          <h3><i class="fa-solid fa-lock"></i> Secure Credit / Debit Card Payment</h3>
+          
+          <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="custom-form mt-3">
+            <div class="form-group">
+              <label for="cardName" class="form-label">Cardholder Name</label>
+              <input type="text" id="cardName" formControlName="cardName" class="form-control" placeholder="John Doe" />
+              @if (paymentForm.get('cardName')?.invalid && paymentForm.get('cardName')?.touched) {
+                <span class="validation-message">Name is required and must contain only letters.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="cardNumber" class="form-label">Card Number</label>
+              <input type="text" id="cardNumber" formControlName="cardNumber" class="form-control" placeholder="1234567812345678" maxlength="16" />
+              @if (paymentForm.get('cardNumber')?.invalid && paymentForm.get('cardNumber')?.touched) {
+                <span class="validation-message">Please enter a valid 16-digit card number.</span>
+              }
+            </div>
+
+            <div class="form-row">
+              <div class="form-group w-50">
+                <label for="expiryDate" class="form-label">Expiration Date (MM/YY)</label>
+                <input type="text" id="expiryDate" formControlName="expiryDate" class="form-control" placeholder="MM/YY" maxlength="5" />
+                @if (paymentForm.get('expiryDate')?.invalid && paymentForm.get('expiryDate')?.touched) {
+                  @if (paymentForm.get('expiryDate')?.errors?.['required'] || paymentForm.get('expiryDate')?.errors?.['pattern']) {
+                    <span class="validation-message">Format MM/YY required.</span>
+                  } @else if (paymentForm.get('expiryDate')?.errors?.['expired']) {
+                    <span class="validation-message">Card has expired.</span>
+                  }
+                }
+              </div>
+
+              <div class="form-group w-50 ml-3">
+                <label for="cvv" class="form-label">CVV / CVN</label>
+                <input type="password" id="cvv" formControlName="cvv" class="form-control" placeholder="123" maxlength="4" />
+                @if (paymentForm.get('cvv')?.invalid && paymentForm.get('cvv')?.touched) {
+                  <span class="validation-message">Enter 3 or 4-digit code.</span>
+                }
+              </div>
+            </div>
+
+            <div class="actions-row mt-4">
+              <button type="submit" class="btn btn-primary submit-btn w-100" [disabled]="isSubmitting()">
+                @if (isSubmitting()) {
+                  <i class="fa-solid fa-spinner fa-spin"></i> Processing...
+                } @else {
+                  Confirm & Pay ${{ grandTotal() | number:'1.2-2' }}
+                }
+              </button>
+              <a [routerLink]="['/home/summary']" class="btn btn-secondary w-100 text-center mt-2">
+                Back to Checkout
+              </a>
+            </div>
+          </form>
+        } @else {
+          <!-- Payment Mode: NetBanking / UPI -->
+          <h3><i class="fa-solid fa-building-columns"></i> Mock Payment Portal</h3>
+          <p class="mt-3 text-secondary">You selected <strong>{{ paymentMode() }}</strong> as your payment instrument.</p>
+          <div class="mock-portal-box mt-4">
+            <i class="fa-solid fa-shield-halved text-success"></i>
+            <p>This is a simulated external payment screen. Click below to confirm and authorize the transaction.</p>
+          </div>
+          
+          <div class="actions-row mt-4">
+            <button (click)="onSubmit()" class="btn btn-primary w-100" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <i class="fa-solid fa-spinner fa-spin"></i> Authorizing...
+              } @else {
+                Authorize Payment of ${{ grandTotal() | number:'1.2-2' }}
+              }
+            </button>
+            <a [routerLink]="['/home/summary']" class="btn btn-secondary w-100 text-center mt-2">
+              Back to Checkout
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <!-- Success / Receipt View -->
+    <div class="receipt-container printable-receipt">
+      <div class="receipt-status-header">
+        <div class="success-icon-animation">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h2>Payment Successful!</h2>
+        <p>Your transaction has been processed. A confirmation receipt is generated below.</p>
+      </div>
+
+      <!-- Transaction details card -->
+      <div class="glass-card receipt-card">
+        <div class="receipt-header-branding">
+          <div class="brand">
+            <i class="fa-solid fa-bolt"></i> Voltaic Receipt
+          </div>
+          <span class="date">{{ receiptDetails().transactionDate | date:'medium' }}</span>
+        </div>
+
+        <div class="receipt-grid">
+          <div class="receipt-item">
+            <span class="label">Receipt Number</span>
+            <span class="value font-heading">{{ receiptDetails().receiptNumber }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Payment ID</span>
+            <span class="value">{{ receiptDetails().paymentId }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Transaction ID</span>
+            <span class="value">{{ receiptDetails().transactionId }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Status</span>
+            <span class="value text-success font-heading">{{ receiptDetails().transactionStatus }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Mode of Payment</span>
+            <span class="value">{{ paymentMode() }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Total Amount Paid</span>
+            <span class="value total-glow font-heading">${{ receiptDetails().transactionAmount | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="receipt-items-breakdown mt-4">
+          <h4>Invoices Settled</h4>
+          <div class="breakdown-list">
+            @for (bill of receiptDetails().paidBills; track bill.billId) {
+              <div class="breakdown-row">
+                <span>{{ bill.billingPeriod }} Bill (ID: {{ bill.billId }})</span>
+                <span>${{ (bill.billAmount + bill.lateFee) | number:'1.2-2' }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-actions no-print mt-4">
+        <button (click)="downloadReceipt()" class="btn btn-primary">
+          <i class="fa-solid fa-print"></i> Print / Save Receipt
+        </button>
+        <a [routerLink]="['/home/dashboard']" class="btn btn-secondary ml-3">
+          Return to Dashboard
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Confirmation Modal Overlay -->
+  @if (showConfirmModal()) {
+    <div class="modal-overlay">
+      <div class="modal-content glass-card">
+        <h3><i class="fa-solid fa-circle-question text-warning"></i> Confirm Payment</h3>
+        <p>Are you sure you want to authorize this payment of <strong>${{ grandTotal() | number:'1.2-2' }}</strong>?</p>
+        <div class="modal-buttons mt-4">
+          <button (click)="executePayment()" class="btn btn-primary">Yes, Make Payment</button>
+          <button (click)="closeConfirmModal()" class="btn btn-secondary ml-2">Cancel</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

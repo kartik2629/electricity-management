@@ -1,0 +1,98 @@
+<div class="invoice-wrapper">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i> Loading invoice details...
+    </div>
+  } @else if (errorMessage()) {
+    <div class="alert alert-danger mt-4">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+    <div class="mt-3 text-center">
+      <a [routerLink]="['/home/dashboard']" class="btn btn-secondary">Return to Dashboard</a>
+    </div>
+  } @else {
+    <!-- Printable Invoice Page -->
+    <div class="printable-invoice-container">
+      <header class="invoice-branding">
+        <div class="brand">
+          <i class="fa-solid fa-bolt text-success"></i> Voltaic Power Corporation
+        </div>
+        <div class="invoice-meta-head">
+          <h2>OFFICIAL INVOICE</h2>
+          <span class="invoice-no">Invoice No: {{ invoice().receiptNumber }}</span>
+        </div>
+      </header>
+
+      <hr class="dashed-divider" />
+
+      <div class="billing-details-row">
+        <div class="billing-col">
+          <strong>Billed To:</strong>
+          <span class="details-name">Registered Customer Account</span>
+          <span>Account ID: {{ invoice().paymentId }}</span>
+        </div>
+        <div class="billing-col text-right">
+          <strong>Transaction Details:</strong>
+          <span>Date: {{ invoice().transactionDate | date:'medium' }}</span>
+          <span>Payment Mode: {{ invoice().modeOfPayment }}</span>
+          <span>Status: <strong class="text-success">{{ invoice().transactionStatus }}</strong></span>
+        </div>
+      </div>
+
+      <div class="table-container mt-4">
+        <table class="custom-table invoice-table">
+          <thead>
+            <tr>
+              <th>Bill ID</th>
+              <th>Billing Period</th>
+              <th class="text-right">Base Amount</th>
+              <th class="text-right">Late Fee</th>
+              <th class="text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (bill of invoice().paidBills; track bill.billId) {
+              <tr>
+                <td>{{ bill.billId }}</td>
+                <td>{{ bill.billingPeriod }}</td>
+                <td class="text-right">${{ bill.billAmount | number:'1.2-2' }}</td>
+                <td class="text-right">${{ bill.lateFee | number:'1.2-2' }}</td>
+                <td class="text-right font-heading">${{ (bill.billAmount + bill.lateFee) | number:'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="invoice-summary-block mt-3">
+        <div class="summary-line">
+          <span>Payment Type:</span>
+          <span>{{ invoice().transactionType }}</span>
+        </div>
+        <div class="summary-line">
+          <span>Transaction ID:</span>
+          <span>{{ invoice().transactionId }}</span>
+        </div>
+        <div class="summary-line grand-total-line">
+          <span>Grand Total Paid:</span>
+          <span class="font-heading">${{ invoice().transactionAmount | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <footer class="invoice-footer mt-4">
+        <p>Thank you for your payment. For queries regarding your bill, register a complaint online or contact support.</p>
+        <p class="certified-text"><i class="fa-solid fa-stamp"></i> System Generated E-Receipt - No Signature Required</p>
+      </footer>
+    </div>
+
+    <div class="invoice-actions no-print mt-4 text-center">
+      <button (click)="printInvoice()" class="btn btn-primary">
+        <i class="fa-solid fa-print"></i> Print Invoice
+      </button>
+      <a [routerLink]="['/home/bills']" class="btn btn-secondary ml-3">
+        Back to Bills & History
+      </a>
+    </div>
+  }
+</div>

@@ -1,0 +1,55 @@
+<div class="admin-dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="brand">
+        <i class="fa-solid fa-screwdriver-wrench text-warning"></i>
+        <span>Voltaic Admin</span>
+      </div>
+      <nav class="nav-menu">
+        <a [routerLink]="['/admin/overview']" routerLinkActive="active" class="nav-item">
+          <i class="fa-solid fa-chart-pie"></i> Insights Overview
+        </a>
+        <a [routerLink]="['/admin/consumers']" routerLinkActive="active" class="nav-item">
+          <i class="fa-solid fa-plug"></i> Manage Connections
+        </a>
+        <a [routerLink]="['/admin/add-customer']" routerLinkActive="active" class="nav-item">
+          <i class="fa-solid fa-user-plus"></i> Register Customer
+        </a>
+        <a [routerLink]="['/admin/add-consumer']" routerLinkActive="active" class="nav-item">
+          <i class="fa-solid fa-circle-plus"></i> Link New Consumer
+        </a>
+        <a [routerLink]="['/admin/bills']" routerLinkActive="active" class="nav-item">
+          <i class="fa-solid fa-file-invoice-dollar"></i> Manage Bills
+        </a>
+        <a [routerLink]="['/admin/complaints']" routerLinkActive="active" class="nav-item">
+          <i class="fa-solid fa-headset"></i> Manage Complaints
+        </a>
+      </nav>
+    </div>
+    
+    <div class="sidebar-bottom">
+      <button (click)="themeService.toggleTheme()" class="btn btn-secondary w-100 mb-3 theme-toggle-btn" style="margin-bottom: 1rem;">
+        <i class="fa-solid" [class.fa-sun]="themeService.isDarkMode()" [class.fa-moon]="!themeService.isDarkMode()"></i>
+        <span>{{ themeService.isDarkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
+      </button>
+      <div class="user-profile">
+        <div class="avatar">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div class="user-info">
+          <span class="user-name">System Admin</span>
+          <span class="user-role">Administrator</span>
+        </div>
+      </div>
+      <button (click)="logout()" class="btn btn-secondary w-100 logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i> Log Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

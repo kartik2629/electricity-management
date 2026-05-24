@@ -1,0 +1,211 @@
+<div class="admin-view-wrapper animate-fade-in">
+  <div class="view-header">
+    <h2><i class="fa-solid fa-plug text-warning"></i> Manage Consumer Connections</h2>
+    <p>Monitor, update details, or toggle connection state for electricity accounts.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger mb-4">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Filters Toolbar -->
+  <div class="glass-card toolbar-card mb-4">
+    <div class="toolbar-row">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()" class="form-control" placeholder="Search by Consumer No, Name, Customer ID..." />
+      </div>
+
+      <div class="filter-box">
+        <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()" class="form-control">
+          <option value="ALL">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+      </div>
+
+      <div class="filter-box">
+        <select [(ngModel)]="typeFilter" (ngModelChange)="onFilterChange()" class="form-control">
+          <option value="ALL">All Types</option>
+          <option value="RESIDENTIAL">Residential</option>
+          <option value="COMMERCIAL">Commercial</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consumers Table List -->
+  <div class="glass-card table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i> Fetching consumers...
+      </div>
+    } @else {
+      @if (consumers().length > 0) {
+        <div class="table-container">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Consumer No</th>
+                <th>Linked Customer</th>
+                <th>Address</th>
+                <th>Section</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of consumers(); track c.id) {
+                <tr>
+                  <td class="font-heading">{{ c.consumerNo }}</td>
+                  <td>
+                    @if (c.customer) {
+                      <strong>{{ c.customer.user.fullName }}</strong><br/>
+                      <small class="text-muted">{{ c.customer.customerId }}</small>
+                    } @else {
+                      <span class="text-warning"><i class="fa-solid fa-triangle-exclamation"></i> Unlinked</span>
+                    }
+                  </td>
+                  <td>{{ c.address }}</td>
+                  <td>{{ c.electricalSection }}</td>
+                  <td>
+                    <span class="badge" [class.badge-active]="c.customerType === 'RESIDENTIAL'" [class.badge-progress]="c.customerType === 'COMMERCIAL'">
+                      {{ c.customerType }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [class.badge-active]="c.status === 'ACTIVE'" [class.badge-unpaid]="c.status === 'INACTIVE'">
+                      {{ c.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button (click)="openEditModal(c)" class="btn btn-secondary btn-xs" title="Edit Connection Details">
+                        <i class="fa-solid fa-pen"></i> Edit
+                      </button>
+                      <button (click)="toggleStatus(c)" class="btn btn-xs" [class.btn-danger]="c.status === 'ACTIVE'" [class.btn-success]="c.status === 'INACTIVE'" [title]="c.status === 'ACTIVE' ? 'Disconnect Connection' : 'Reconnect Connection'">
+                        @if (c.status === 'ACTIVE') {
+                          <i class="fa-solid fa-ban"></i> Disconnect
+                        } @else {
+                          <i class="fa-solid fa-circle-check"></i> Reconnect
+                        }
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <div class="pagination-container mt-4">
+            <button class="btn btn-secondary btn-xs" [disabled]="currentPage() === 0" (click)="setPage(currentPage() - 1)">
+              <i class="fa-solid fa-angle-left"></i> Previous
+            </button>
+            <span class="page-indicator text-muted">Page {{ currentPage() + 1 }} of {{ totalPages() }}</span>
+            <button class="btn btn-secondary btn-xs" [disabled]="currentPage() === totalPages() - 1" (click)="setPage(currentPage() + 1)">
+              Next <i class="fa-solid fa-angle-right"></i>
+            </button>
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <i class="fa-solid fa-folder-open"></i>
+          <p>No consumer connections found matching your search.</p>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Edit Details Modal Overlay -->
+  @if (selectedConsumer(); as consumer) {
+    <div class="modal-backdrop">
+      <div class="glass-card modal-content animate-slide-in">
+        <div class="modal-header">
+          <h3>Edit Details: #{{ consumer.consumerNo }}</h3>
+          <button (click)="closeEditModal()" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <form [formGroup]="editForm" (ngSubmit)="onUpdate()" class="modal-form">
+          <div class="form-group">
+            <label for="address" class="form-label">Billing Address</label>
+            <input type="text" id="address" formControlName="address" class="form-control" />
+            @if (editForm.get('address')?.touched && editForm.get('address')?.invalid) {
+              <span class="error-msg">Address is required.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="electricalSection" class="form-label">Electrical Section</label>
+            <select id="electricalSection" formControlName="electricalSection" class="form-control">
+              @for (sec of electricalSections; track sec) {
+                <option [value]="sec">{{ sec }}</option>
+              }
+            </select>
+            @if (editForm.get('electricalSection')?.touched && editForm.get('electricalSection')?.invalid) {
+              <span class="error-msg">Please select an electrical section.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="customerType" class="form-label">Customer Type</label>
+            <select id="customerType" formControlName="customerType" class="form-control">
+              <option value="RESIDENTIAL">RESIDENTIAL</option>
+              <option value="COMMERCIAL">COMMERCIAL</option>
+            </select>
+            @if (editForm.get('customerType')?.touched && editForm.get('customerType')?.invalid) {
+              <span class="error-msg">Customer type is required.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="status" class="form-label">Connection Status</label>
+            <select id="status" formControlName="status" class="form-control">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="INACTIVE">INACTIVE</option>
+            </select>
+            @if (editForm.get('status')?.touched && editForm.get('status')?.invalid) {
+              <span class="error-msg">Status is required.</span>
+            }
+          </div>
+
+          <div class="modal-actions mt-4">
+            <button type="button" (click)="closeEditModal()" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Custom Confirmation Modal Overlay -->
+  @if (showConfirmModal()) {
+    <div class="modal-backdrop">
+      <div class="glass-card modal-content animate-slide-in" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3>Confirm Action</h3>
+          <button (click)="closeConfirmModal()" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body py-3">
+          <p>{{ confirmMessage() }}</p>
+        </div>
+        <div class="modal-actions mt-3">
+          <button (click)="closeConfirmModal()" class="btn btn-secondary">Cancel</button>
+          <button (click)="triggerConfirmAction()" class="btn btn-primary">Confirm</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,150 @@
+<div class="history-wrapper">
+  <div class="view-header">
+    <h2><i class="fa-solid fa-list-check"></i> Complaint & Support History</h2>
+    <p>View all support tickets you have filed and their current resolution status.</p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i> Loading support history...
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Filters Toolbar -->
+    <div class="glass-card toolbar-card">
+      <div class="toolbar-row">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" [(ngModel)]="searchTerm" class="form-control" placeholder="Search by Ticket ID, description..." />
+        </div>
+        <div class="filter-box">
+          <select [(ngModel)]="statusFilter" class="form-control">
+            <option value="ALL">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+        </div>
+        <a [routerLink]="['/home/register-complaint']" class="btn btn-primary lodge-btn">
+          <i class="fa-solid fa-plus"></i> Lodge New Ticket
+        </a>
+      </div>
+    </div>
+
+    <!-- Listing & Details Container -->
+    <div class="content-split mt-4" [class.show-details]="selectedComplaint() !== null">
+      
+      <!-- List Grid -->
+      <div class="glass-card list-card">
+        @if (filteredComplaints().length > 0) {
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Date Submitted</th>
+                  <th>Type & Category</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (ticket of filteredComplaints(); track ticket.id) {
+                  <tr [class.row-selected]="selectedComplaint()?.id === ticket.id">
+                    <td class="font-heading">{{ ticket.complaintId }}</td>
+                    <td>{{ ticket.dateSubmitted | date:'mediumDate' }}</td>
+                    <td><strong>{{ ticket.complaintType }}</strong> <br/><small class="text-muted">{{ ticket.category }}</small></td>
+                    <td>
+                      <span class="desc-truncate">{{ ticket.description }}</span>
+                    </td>
+                    <td>
+                      <span class="badge" [class.badge-active]="ticket.status === 'RESOLVED' || ticket.status === 'CLOSED'" [class.badge-unpaid]="ticket.status === 'PENDING'" [class.badge-progress]="ticket.status === 'IN_PROGRESS'">
+                        {{ ticket.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <button (click)="selectComplaint(ticket)" class="btn btn-link btn-xs text-primary">
+                        <i class="fa-solid fa-eye"></i> Details
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <i class="fa-solid fa-folder-open"></i>
+            <p>No complaints match the selected filter criteria.</p>
+          </div>
+        }
+      </div>
+
+      <!-- Quick Details Sidebar -->
+      @if (selectedComplaint(); as ticket) {
+        <div class="glass-card details-sidebar animate-slide-in">
+          <div class="sidebar-header">
+            <h3>Ticket Details</h3>
+            <button (click)="closeDetails()" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <div class="sidebar-body">
+            <div class="detail-section">
+              <span class="section-label">Ticket ID:</span>
+              <strong class="section-val font-heading text-primary">{{ ticket.complaintId }}</strong>
+            </div>
+
+            <div class="detail-section">
+              <span class="section-label">Consumer Account:</span>
+              <span class="section-val">{{ ticket.consumer.consumerNo }}</span>
+            </div>
+
+            <div class="detail-section">
+              <span class="section-label">Date Lodged:</span>
+              <span class="section-val">{{ ticket.dateSubmitted | date:'medium' }}</span>
+            </div>
+
+            <div class="detail-section">
+              <span class="section-label">Type & Category:</span>
+              <span class="section-val">{{ ticket.complaintType }} - {{ ticket.category }}</span>
+            </div>
+
+            <div class="detail-section">
+              <span class="section-label">Status:</span>
+              <span class="badge w-fit mt-1" [class.badge-active]="ticket.status === 'RESOLVED' || ticket.status === 'CLOSED'" [class.badge-unpaid]="ticket.status === 'PENDING'" [class.badge-progress]="ticket.status === 'IN_PROGRESS'">
+                {{ ticket.status }}
+              </span>
+            </div>
+
+            <div class="detail-section">
+              <span class="section-label">Estimated Resolution:</span>
+              <span class="section-val text-info"><i class="fa-regular fa-clock"></i> {{ ticket.estimatedResolutionTime }}</span>
+            </div>
+
+            <div class="detail-section">
+              <span class="section-label">Customer Description:</span>
+              <p class="box-content">{{ ticket.description }}</p>
+            </div>
+
+            <div class="detail-section resolver-notes">
+              <span class="section-label">Resolver/SME Notes:</span>
+              @if (ticket.notes) {
+                <p class="box-content notes-content">{{ ticket.notes }}</p>
+              } @else {
+                <p class="box-content text-muted">No resolution notes submitted.</p>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

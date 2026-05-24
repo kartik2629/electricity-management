@@ -1,0 +1,122 @@
+<div class="history-wrapper">
+  <div class="view-header">
+    <h2><i class="fa-solid fa-clock-rotate-left"></i> E-Bill History & Usage Statement</h2>
+    <p>View your billing history, check payment status, and download receipts.</p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i> Loading transaction history...
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Advanced Filters Card -->
+    <div class="glass-card filter-card">
+      <div class="filter-row">
+        <div class="filter-item">
+          <label for="startDate">From Date</label>
+          <input type="date" id="startDate" [(ngModel)]="startDate" class="form-control" />
+        </div>
+        <div class="filter-item">
+          <label for="endDate">To Date</label>
+          <input type="date" id="endDate" [(ngModel)]="endDate" class="form-control" />
+        </div>
+        <div class="filter-item">
+          <label for="statusFilter">Payment Status</label>
+          <select id="statusFilter" [(ngModel)]="statusFilter" class="form-control">
+            <option value="ALL">All Statements</option>
+            <option value="PAID">Paid Only</option>
+            <option value="UNPAID">Unpaid Only</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="sortBy">Sort By</label>
+          <select id="sortBy" [(ngModel)]="sortBy" class="form-control">
+            <option value="billDateDesc">Newest Bill Date</option>
+            <option value="billDateAsc">Oldest Bill Date</option>
+            <option value="dueDateDesc">Newest Due Date</option>
+            <option value="dueDateAsc">Oldest Due Date</option>
+            <option value="amountDesc">Highest Amount</option>
+            <option value="amountAsc">Lowest Amount</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-actions mt-3">
+        <button (click)="resetFilters()" class="btn btn-secondary"><i class="fa-solid fa-arrow-rotate-left"></i> Reset Filters</button>
+      </div>
+    </div>
+
+    <!-- Usage History Listing -->
+    <div class="glass-card mt-4 table-card">
+      @if (processedBills().length > 0) {
+        <div class="table-container">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Bill Date</th>
+                <th>Billing Period</th>
+                <th>Due Date</th>
+                <th>Bill Amount</th>
+                <th>Status</th>
+                <th>Payment Date</th>
+                <th>Mode</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bill of processedBills(); track bill.id) {
+                <tr>
+                  <td class="font-heading">{{ bill.billDate | date:'mediumDate' }}</td>
+                  <td><strong>{{ bill.billingPeriod }}</strong></td>
+                  <td>
+                    <span [class.text-danger]="bill.status === 'UNPAID' && isOverdue(bill.dueDate)">
+                      {{ bill.dueDate | date:'mediumDate' }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (bill.status === 'UNPAID' && isOverdue(bill.dueDate)) {
+                      ${{ (bill.billAmount + (bill.lateFee <= 0 ? 10.0 : bill.lateFee)) | number:'1.2-2' }}*
+                    } @else {
+                      ${{ (bill.billAmount + bill.lateFee) | number:'1.2-2' }}
+                    }
+                  </td>
+                  <td>
+                    <span class="badge" [class.badge-active]="bill.status === 'PAID'" [class.badge-unpaid]="bill.status === 'UNPAID'">
+                      {{ bill.status }}
+                    </span>
+                  </td>
+                  <td>{{ bill.paymentDate ? (bill.paymentDate | date:'mediumDate') : '-' }}</td>
+                  <td>{{ bill.modeOfPayment || '-' }}</td>
+                  <td>
+                    @if (bill.status === 'PAID' && bill.transactionId) {
+                      <a [routerLink]="['/home/invoice', bill.transactionId]" class="btn btn-link btn-xs text-success">
+                        <i class="fa-solid fa-file-invoice"></i> View Invoice
+                      </a>
+                    } @else if (bill.status === 'UNPAID') {
+                      <a [routerLink]="['/home/bills']" class="btn btn-link btn-xs text-primary">
+                        <i class="fa-solid fa-credit-card"></i> Pay Now
+                      </a>
+                    } @else {
+                      -
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <p>No billing statement matching the selected filters found.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

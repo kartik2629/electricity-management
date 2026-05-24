@@ -1,0 +1,317 @@
+<div class="admin-view-wrapper animate-fade-in">
+  <div class="view-header">
+    <div>
+      <h2><i class="fa-solid fa-chart-line"></i> Command Center</h2>
+      <p class="header-sub">Real-time operational intelligence, revenue analytics, and service performance.</p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner-ring"></div>
+      <span>Aggregating dashboard metrics...</span>
+    </div>
+  } @else {
+    <!-- ═══════ TOP KPI CARDS ═══════ -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-icon"><i class="fa-solid fa-user-group"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Customers</span>
+          <h3 class="kpi-value">{{ stats()?.totalCustomers }}</h3>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon"><i class="fa-solid fa-plug-circle-bolt"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Connections</span>
+          <h3 class="kpi-value">{{ stats()?.totalConsumers }}</h3>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Revenue</span>
+          <h3 class="kpi-value">₹{{ stats()?.totalPaidAmount | number:'1.0-0' }}</h3>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Total Bills</span>
+          <h3 class="kpi-value">{{ stats()?.totalBills }}</h3>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-red">
+        <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Overdue</span>
+          <h3 class="kpi-value">{{ stats()?.overdueBills }}</h3>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-teal">
+        <div class="kpi-icon"><i class="fa-solid fa-headset"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Disputes</span>
+          <h3 class="kpi-value">{{ stats()?.totalComplaints }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ CHARTS ROW 1 ═══════ -->
+    <div class="charts-row">
+      <!-- ── REVENUE BREAKDOWN ── -->
+      <div class="glass-card chart-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-chart-bar"></i> Revenue Breakdown</h3>
+        </div>
+
+        <div class="revenue-bars">
+          <div class="rev-bar-item">
+            <div class="rev-bar-label">
+              <span>Collected</span>
+              <span class="rev-bar-value text-success">₹{{ stats()?.totalPaidAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="progress-rail">
+              <div class="progress-fill fill-green" [style.width.%]="stats()?.collectionRate"></div>
+            </div>
+          </div>
+          <div class="rev-bar-item">
+            <div class="rev-bar-label">
+              <span>Outstanding</span>
+              <span class="rev-bar-value text-danger">₹{{ stats()?.totalUnpaidAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="progress-rail">
+              <div class="progress-fill fill-red" [style.width.%]="100 - stats()?.collectionRate"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rev-metrics">
+          <div class="metric-box">
+            <span class="metric-label">Collection Rate</span>
+            <span class="metric-value text-success font-heading">{{ stats()?.collectionRate }}%</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-box">
+            <span class="metric-label">Avg Bill</span>
+            <span class="metric-value font-heading">₹{{ stats()?.avgBillAmount | number:'1.2-2' }}</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-box">
+            <span class="metric-label">Invoices Paid</span>
+            <span class="metric-value font-heading">{{ stats()?.totalPaidBills }}/{{ stats()?.totalBills }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COLLECTION GAUGE ── -->
+      <div class="glass-card chart-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-gauge-high"></i> Collection Performance</h3>
+        </div>
+
+        <div class="gauge-container">
+          <svg width="200" height="120" viewBox="0 0 100 60" class="gauge-svg">
+            <!-- Background arc -->
+            <path d="M 5 55 A 45 45 0 0 1 95 55" fill="none" stroke="var(--border-color)" stroke-width="6" stroke-linecap="round"/>
+            <!-- Value arc -->
+            <path d="M 5 55 A 45 45 0 0 1 95 55" fill="none" 
+                  [attr.stroke]="stats()?.collectionRate >= 70 ? '#66bb6a' : stats()?.collectionRate >= 40 ? '#ffa726' : '#ef5350'" 
+                  stroke-width="6" stroke-linecap="round"
+                  [attr.stroke-dasharray]="getGaugeArc(stats()?.collectionRate)"
+                  class="gauge-arc"/>
+          </svg>
+          <div class="gauge-label">
+            <span class="gauge-pct font-heading">{{ stats()?.collectionRate }}%</span>
+            <span class="gauge-sub">of total billed</span>
+          </div>
+        </div>
+
+        <div class="gauge-stats">
+          <div class="gstat">
+            <i class="fa-solid fa-circle-check text-success"></i>
+            <div>
+              <span class="gstat-val font-heading">{{ stats()?.totalPaidBills }}</span>
+              <span class="gstat-label">Paid</span>
+            </div>
+          </div>
+          <div class="gstat">
+            <i class="fa-solid fa-clock text-warning"></i>
+            <div>
+              <span class="gstat-val font-heading">{{ stats()?.totalUnpaidBills }}</span>
+              <span class="gstat-label">Pending</span>
+            </div>
+          </div>
+          <div class="gstat">
+            <i class="fa-solid fa-exclamation-circle text-danger"></i>
+            <div>
+              <span class="gstat-val font-heading">{{ stats()?.overdueBills }}</span>
+              <span class="gstat-label">Overdue</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ CHARTS ROW 2 ═══════ -->
+    <div class="charts-row">
+      <!-- ── CONNECTION TYPE DONUT ── -->
+      <div class="glass-card chart-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-plug-circle-check"></i> Connection Analytics</h3>
+        </div>
+
+        <div class="donut-row">
+          <!-- Type donut -->
+          <div class="donut-block">
+            <div class="donut-wrap">
+              <svg width="130" height="130" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="transparent" stroke="var(--border-color)" stroke-width="8"/>
+                <circle cx="50" cy="50" r="42" fill="transparent" stroke="#7e57c2" stroke-width="8"
+                        [attr.stroke-dasharray]="getDonutDash(stats()?.residentialConsumers, stats()?.totalConsumers)"
+                        stroke-dashoffset="0" transform="rotate(-90 50 50)" class="donut-seg"/>
+                <circle cx="50" cy="50" r="42" fill="transparent" stroke="#42a5f5" stroke-width="8"
+                        [attr.stroke-dasharray]="getDonutDash(stats()?.commercialConsumers, stats()?.totalConsumers)"
+                        [attr.stroke-dashoffset]="getDonutOffset([stats()?.residentialConsumers], 1, stats()?.totalConsumers)"
+                        transform="rotate(-90 50 50)" class="donut-seg"/>
+              </svg>
+              <div class="donut-center-label">
+                <strong class="font-heading">{{ stats()?.totalConsumers }}</strong>
+                <small>Total</small>
+              </div>
+            </div>
+            <div class="donut-legend-list">
+              <div class="leg-item"><span class="leg-dot" style="background:#7e57c2"></span> Residential <strong>{{ stats()?.residentialConsumers }}</strong></div>
+              <div class="leg-item"><span class="leg-dot" style="background:#42a5f5"></span> Commercial <strong>{{ stats()?.commercialConsumers }}</strong></div>
+            </div>
+          </div>
+
+          <div class="donut-divider"></div>
+
+          <!-- Status donut -->
+          <div class="donut-block">
+            <div class="donut-wrap">
+              <svg width="130" height="130" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="transparent" stroke="var(--border-color)" stroke-width="8"/>
+                <circle cx="50" cy="50" r="42" fill="transparent" stroke="#66bb6a" stroke-width="8"
+                        [attr.stroke-dasharray]="getDonutDash(stats()?.activeConsumers, stats()?.totalConsumers)"
+                        stroke-dashoffset="0" transform="rotate(-90 50 50)" class="donut-seg"/>
+                <circle cx="50" cy="50" r="42" fill="transparent" stroke="#ef5350" stroke-width="8"
+                        [attr.stroke-dasharray]="getDonutDash(stats()?.inactiveConsumers, stats()?.totalConsumers)"
+                        [attr.stroke-dashoffset]="getDonutOffset([stats()?.activeConsumers], 1, stats()?.totalConsumers)"
+                        transform="rotate(-90 50 50)" class="donut-seg"/>
+              </svg>
+              <div class="donut-center-label">
+                <strong class="font-heading">{{ stats()?.activeConsumers }}</strong>
+                <small>Active</small>
+              </div>
+            </div>
+            <div class="donut-legend-list">
+              <div class="leg-item"><span class="leg-dot" style="background:#66bb6a"></span> Active <strong>{{ stats()?.activeConsumers }}</strong></div>
+              <div class="leg-item"><span class="leg-dot" style="background:#ef5350"></span> Inactive <strong>{{ stats()?.inactiveConsumers }}</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COMPLAINT PIPELINE ── -->
+      <div class="glass-card chart-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-list-check"></i> Dispute Pipeline</h3>
+        </div>
+
+        <div class="pipeline-visual">
+          <div class="pipe-donut-area">
+            <div class="donut-wrap">
+              @if (stats()?.totalComplaints > 0) {
+                <svg width="140" height="140" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="var(--border-color)" stroke-width="8"/>
+                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="#ef5350" stroke-width="8"
+                          [attr.stroke-dasharray]="getDonutDash(stats()?.lodgedComplaints, stats()?.totalComplaints)"
+                          stroke-dashoffset="0" transform="rotate(-90 50 50)" class="donut-seg"/>
+                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="#ffa726" stroke-width="8"
+                          [attr.stroke-dasharray]="getDonutDash(stats()?.inProgressComplaints, stats()?.totalComplaints)"
+                          [attr.stroke-dashoffset]="getDonutOffset([stats()?.lodgedComplaints], 1, stats()?.totalComplaints)"
+                          transform="rotate(-90 50 50)" class="donut-seg"/>
+                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="#66bb6a" stroke-width="8"
+                          [attr.stroke-dasharray]="getDonutDash(stats()?.resolvedComplaints, stats()?.totalComplaints)"
+                          [attr.stroke-dashoffset]="getDonutOffset([stats()?.lodgedComplaints, stats()?.inProgressComplaints], 2, stats()?.totalComplaints)"
+                          transform="rotate(-90 50 50)" class="donut-seg"/>
+                </svg>
+                <div class="donut-center-label">
+                  <strong class="font-heading">{{ stats()?.totalComplaints }}</strong>
+                  <small>Total</small>
+                </div>
+              } @else {
+                <div class="empty-donut"><i class="fa-solid fa-check-double"></i> Zero</div>
+              }
+            </div>
+          </div>
+
+          <div class="pipe-breakdown">
+            <div class="pipe-row">
+              <span class="pipe-dot" style="background:#ef5350"></span>
+              <span class="pipe-name">Lodged</span>
+              <span class="pipe-count font-heading">{{ stats()?.lodgedComplaints }}</span>
+              <div class="pipe-bar-mini"><div class="pipe-fill" style="background:#ef5350" [style.width.%]="stats()?.totalComplaints ? (stats()?.lodgedComplaints / stats()?.totalComplaints) * 100 : 0"></div></div>
+            </div>
+            <div class="pipe-row">
+              <span class="pipe-dot" style="background:#ffa726"></span>
+              <span class="pipe-name">In Progress</span>
+              <span class="pipe-count font-heading">{{ stats()?.inProgressComplaints }}</span>
+              <div class="pipe-bar-mini"><div class="pipe-fill" style="background:#ffa726" [style.width.%]="stats()?.totalComplaints ? (stats()?.inProgressComplaints / stats()?.totalComplaints) * 100 : 0"></div></div>
+            </div>
+            <div class="pipe-row">
+              <span class="pipe-dot" style="background:#66bb6a"></span>
+              <span class="pipe-name">Resolved</span>
+              <span class="pipe-count font-heading">{{ stats()?.resolvedComplaints }}</span>
+              <div class="pipe-bar-mini"><div class="pipe-fill" style="background:#66bb6a" [style.width.%]="stats()?.totalComplaints ? (stats()?.resolvedComplaints / stats()?.totalComplaints) * 100 : 0"></div></div>
+            </div>
+            <div class="pipe-rate">
+              <span>Resolution Rate</span>
+              <strong class="font-heading" [class.text-success]="stats()?.resolutionRate >= 50" [class.text-danger]="stats()?.resolutionRate < 50">{{ stats()?.resolutionRate }}%</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ BOTTOM QUICK STATS ═══════ -->
+    <div class="bottom-stats">
+      <div class="glass-card mini-stat">
+        <i class="fa-solid fa-users-gear icon-muted"></i>
+        <div>
+          <span class="mini-label">SME Experts</span>
+          <strong class="mini-val font-heading">{{ stats()?.totalSmes }}</strong>
+        </div>
+      </div>
+      <div class="glass-card mini-stat">
+        <i class="fa-solid fa-arrow-up-right-dots icon-muted"></i>
+        <div>
+          <span class="mini-label">Highest Bill</span>
+          <strong class="mini-val font-heading">₹{{ stats()?.highestBill | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="glass-card mini-stat">
+        <i class="fa-solid fa-chart-simple icon-muted"></i>
+        <div>
+          <span class="mini-label">Avg Bill Amount</span>
+          <strong class="mini-val font-heading">₹{{ stats()?.avgBillAmount | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="glass-card mini-stat">
+        <i class="fa-solid fa-shield-halved icon-muted"></i>
+        <div>
+          <span class="mini-label">System Users</span>
+          <strong class="mini-val font-heading">{{ stats()?.totalUsers }}</strong>
+        </div>
+      </div>
+    </div>
+  }
+</div>

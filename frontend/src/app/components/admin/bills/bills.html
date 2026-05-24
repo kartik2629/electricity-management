@@ -1,0 +1,202 @@
+<div class="admin-view-wrapper animate-fade-in">
+  <div class="view-header d-flex justify-content-between align-items-center">
+    <div>
+      <h2><i class="fa-solid fa-file-invoice-dollar text-warning"></i> Manage Bills</h2>
+      <p>Issue new invoices and audit payment logs for all registered connections.</p>
+    </div>
+    <button (click)="openAddModal()" class="btn btn-primary">
+      <i class="fa-solid fa-plus"></i> Generate New Bill
+    </button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger mb-4">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success mb-4">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Filters Toolbar -->
+  <div class="glass-card toolbar-card mb-4">
+    <div class="toolbar-row">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" [(ngModel)]="consumerFilter" (ngModelChange)="onFilterChange()" class="form-control" placeholder="Search by 13-digit Consumer No..." />
+      </div>
+
+      <div class="filter-box">
+        <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()" class="form-control">
+          <option value="ALL">All Payments</option>
+          <option value="UNPAID">Unpaid</option>
+          <option value="PAID">Paid</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bills Table -->
+  <div class="glass-card table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading invoice records...
+      </div>
+    } @else {
+      @if (bills().length > 0) {
+        <div class="table-container">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Bill ID</th>
+                <th>Consumer No</th>
+                <th>Period</th>
+                <th>Bill / Due Date</th>
+                <th>Amount</th>
+                <th>Late Fee</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (b of bills(); track b.id) {
+                <tr>
+                  <td class="font-heading">{{ b.billId }}</td>
+                  <td>{{ b.consumer.consumerNo }}</td>
+                  <td><strong>{{ b.billingPeriod }}</strong></td>
+                  <td>
+                    <span>Issued: {{ b.billDate }}</span><br/>
+                    <small class="text-muted">Due: {{ b.dueDate }}</small>
+                  </td>
+                  <td><strong>₹{{ b.billAmount | number:'1.2-2' }}</strong></td>
+                  <td>₹{{ b.lateFee | number:'1.2-2' }}</td>
+                  <td>
+                    <span class="badge" [class.badge-active]="b.status === 'PAID'" [class.badge-unpaid]="b.status === 'UNPAID'">
+                      {{ b.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <div class="pagination-container mt-4">
+            <button class="btn btn-secondary btn-xs" [disabled]="currentPage() === 0" (click)="setPage(currentPage() - 1)">
+              <i class="fa-solid fa-angle-left"></i> Previous
+            </button>
+            <span class="page-indicator text-muted">Page {{ currentPage() + 1 }} of {{ totalPages() }}</span>
+            <button class="btn btn-secondary btn-xs" [disabled]="currentPage() === totalPages() - 1" (click)="setPage(currentPage() + 1)">
+              Next <i class="fa-solid fa-angle-right"></i>
+            </button>
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <i class="fa-solid fa-file-excel"></i>
+          <p>No bill invoices generated for this connection matching parameters.</p>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Generate Bill Modal -->
+  @if (showAddModal()) {
+    <div class="modal-backdrop">
+      <div class="glass-card modal-content animate-slide-in">
+        <div class="modal-header">
+          <h3>Generate New Bill Invoice</h3>
+          <button (click)="closeAddModal()" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <form [formGroup]="billForm" (ngSubmit)="onSubmitBill()" class="modal-form">
+          
+          @if (errorMessage()) {
+            <div class="alert alert-danger mb-3" style="padding: 0.6rem 1rem; font-size: 0.85rem;">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <div class="form-group">
+            <label for="consumerNo" class="form-label">Consumer No (13 Digits)</label>
+            <input type="text" id="consumerNo" formControlName="consumerNo" class="form-control" placeholder="Enter connection number" />
+            @if (billForm.get('consumerNo')?.touched && billForm.get('consumerNo')?.invalid) {
+              <span class="error-msg">Must be exactly 13 digits.</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="billingMonth" class="form-label">Billing Month</label>
+              <select id="billingMonth" formControlName="billingMonth" class="form-control">
+                <option value="" disabled selected>-- Month --</option>
+                @for (m of months; track m) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
+            </div>
+            
+            <div class="form-group col">
+              <label for="billingYear" class="form-label">Billing Year</label>
+              <select id="billingYear" formControlName="billingYear" class="form-control">
+                @for (y of years; track y) {
+                  <option [value]="y">{{ y }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="billAmount" class="form-label">Bill Amount (₹)</label>
+            <input type="number" id="billAmount" formControlName="billAmount" class="form-control" placeholder="0.00" step="0.01" />
+            @if (billForm.get('billAmount')?.touched && billForm.get('billAmount')?.invalid) {
+              <span class="error-msg">Amount must be greater than zero.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="lateFee" class="form-label">Late Fee (₹)</label>
+            <input type="number" id="lateFee" formControlName="lateFee" class="form-control" placeholder="0.00" step="0.01" />
+            @if (billForm.get('lateFee')?.touched && billForm.get('lateFee')?.invalid) {
+              <span class="error-msg">Late fee cannot be negative.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="billDate" class="form-label">Bill Date</label>
+            <input type="date" id="billDate" formControlName="billDate" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="dueDate" class="form-label">Due Date</label>
+            <input type="date" id="dueDate" formControlName="dueDate" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="disconnectionDate" class="form-label">Disconnection Date</label>
+            <input type="date" id="disconnectionDate" formControlName="disconnectionDate" class="form-control" />
+          </div>
+
+          <div class="modal-actions mt-4">
+            <button type="button" (click)="closeAddModal()" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <i class="fa-solid fa-spinner fa-spin"></i> Generating...
+              } @else {
+                Generate Invoice
+              }
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+</div>

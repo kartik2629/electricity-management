@@ -1,0 +1,166 @@
+<div class="add-consumer-wrapper animate-fade-in">
+  <div class="view-header">
+    <h2><i class="fa-solid fa-circle-plus text-warning"></i> Link New Consumer Account</h2>
+    <p>Search for an existing customer account and link a new 13-digit physical consumer connection to them.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger mb-4">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success mb-4">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <div class="layout-split">
+    
+    <!-- Step 1: Search & Select Customer -->
+    <div class="glass-card search-card">
+      <h3>Step 1: Select Customer Profile</h3>
+      
+      <div class="search-form mt-3">
+        <div class="search-input-row">
+          <input type="text" [(ngModel)]="searchQuery" class="form-control" placeholder="Search by name, email, CUST-ID..." (keyup.enter)="searchCustomers()" />
+          <button (click)="searchCustomers()" class="btn btn-primary" [disabled]="isSearching()">
+            @if (isSearching()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            } @else {
+              Search
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Selected Customer Profile Alert -->
+      @if (selectedCustomer(); as cust) {
+        <div class="selected-customer-alert mt-4">
+          <div class="alert-content">
+            <span class="label">SELECTED CUSTOMER</span>
+            <strong class="name">{{ cust.user.fullName }}</strong>
+            <span class="details">ID: {{ cust.customerId }} | Email: {{ cust.user.email }}</span>
+          </div>
+          <button (click)="clearSelection()" class="btn-clear" title="Clear selection"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      }
+
+      <!-- Search results list -->
+      <div class="customers-list mt-3">
+        @if (customers().length > 0) {
+          @for (cust of customers(); track cust.id) {
+            <div class="customer-item" [class.selected]="selectedCustomer()?.id === cust.id" (click)="selectCustomer(cust)">
+              <div class="item-info">
+                <span class="cust-name">{{ cust.user.fullName }}</span>
+                <span class="cust-sub text-muted">{{ cust.customerId }} | {{ cust.user.email }}</span>
+              </div>
+              <span class="select-indicator">
+                @if (selectedCustomer()?.id === cust.id) {
+                  <i class="fa-solid fa-circle-check text-primary"></i>
+                } @else {
+                  <i class="fa-regular fa-circle"></i>
+                }
+              </span>
+            </div>
+          }
+        } @else {
+          <div class="empty-results text-center py-4">
+            <p class="text-muted">No customers found. Enter a keyword to search.</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Step 2: Consumer Connection Form -->
+    <div class="glass-card form-card">
+      <h3>Step 2: Connection Parameters</h3>
+
+      @if (!selectedCustomer()) {
+        <div class="no-selection-warning mt-4">
+          <i class="fa-solid fa-arrow-left"></i>
+          <p>Please search and select a Customer Profile from the left panel to unlock parameters.</p>
+        </div>
+      }
+
+      <form [formGroup]="consumerForm" (ngSubmit)="onSubmit()" class="consumer-form mt-4" [class.disabled-form]="!selectedCustomer()">
+        
+        <!-- Consumer Number -->
+        <div class="form-group">
+          <label for="consumerNo" class="form-label">Consumer Number (13 Digits)</label>
+          <div class="input-with-button">
+            <input type="text" id="consumerNo" formControlName="consumerNo" class="form-control" placeholder="e.g. 1000000000004" [attr.disabled]="!selectedCustomer() ? true : null" />
+            <button type="button" class="btn btn-secondary" style="padding: 0.5rem 1rem;" (click)="generateConsumerNo()" [disabled]="!selectedCustomer()">Auto-Gen</button>
+          </div>
+          @if (consumerForm.get('consumerNo')?.touched && consumerForm.get('consumerNo')?.invalid) {
+            @if (consumerForm.get('consumerNo')?.errors?.['required']) {
+              <span class="error-msg">Consumer number is required.</span>
+            } @else if (consumerForm.get('consumerNo')?.errors?.['pattern']) {
+              <span class="error-msg">Must be exactly 13 digits.</span>
+            }
+          }
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label for="address" class="form-label">Physical Connection / Billing Address</label>
+          <input type="text" id="address" formControlName="address" class="form-control" placeholder="e.g. 789 Pine Rd, West Section" [attr.disabled]="!selectedCustomer() ? true : null" />
+          @if (consumerForm.get('address')?.touched && consumerForm.get('address')?.invalid) {
+            <span class="error-msg">Billing Address is required.</span>
+          }
+        </div>
+
+        <!-- Section -->
+        <div class="form-group">
+          <label for="electricalSection" class="form-label">Electrical Section</label>
+          <select id="electricalSection" formControlName="electricalSection" class="form-control" [attr.disabled]="!selectedCustomer() ? true : null">
+            <option value="" disabled selected>-- Select Section --</option>
+            @for (sec of electricalSections; track sec) {
+              <option [value]="sec">{{ sec }}</option>
+            }
+          </select>
+          @if (consumerForm.get('electricalSection')?.touched && consumerForm.get('electricalSection')?.invalid) {
+            <span class="error-msg">Electrical section is required.</span>
+          }
+        </div>
+
+        <!-- Type -->
+        <div class="form-group">
+          <label for="customerType" class="form-label">Customer Type</label>
+          <select id="customerType" formControlName="customerType" class="form-control" [attr.disabled]="!selectedCustomer() ? true : null">
+            <option value="RESIDENTIAL">RESIDENTIAL</option>
+            <option value="COMMERCIAL">COMMERCIAL</option>
+          </select>
+          @if (consumerForm.get('customerType')?.touched && consumerForm.get('customerType')?.invalid) {
+            <span class="error-msg">Customer type is required.</span>
+          }
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+          <label for="status" class="form-label">Connection Status</label>
+          <select id="status" formControlName="status" class="form-control" [attr.disabled]="!selectedCustomer() ? true : null">
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="INACTIVE">INACTIVE</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions mt-4">
+          <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmitting() || !selectedCustomer()">
+            @if (isSubmitting()) {
+              <i class="fa-solid fa-spinner fa-spin"></i> Linking Connection...
+            } @else {
+              Link Connection
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>

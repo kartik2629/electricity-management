@@ -1,0 +1,142 @@
+<div class="login-container">
+  <div class="glass-card login-card">
+    
+    @if (showChangePasswordPrompt()) {
+      <!-- Change Password on First Login -->
+      <div class="form-header">
+        <i class="fa-solid fa-key logo-icon"></i>
+        <h2>Change Your Password</h2>
+        <p>This is your first login. For security, please update your default password before proceeding.</p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="alert alert-danger">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="changePasswordForm" (ngSubmit)="onChangePasswordSubmit()">
+        <!-- Old Password (pre-populated and disabled, or editable if they want to review) -->
+        <div class="form-group">
+          <label class="form-label" for="oldPassword">Old Password</label>
+          <input 
+            type="password" 
+            id="oldPassword" 
+            formControlName="oldPassword" 
+            class="form-control" 
+            readonly
+          />
+        </div>
+
+        <!-- New Password -->
+        <div class="form-group">
+          <label class="form-label" for="newPassword">New Password <span class="required">*</span></label>
+          <input 
+            type="password" 
+            id="newPassword" 
+            formControlName="newPassword" 
+            class="form-control" 
+            [class.is-invalid]="changePasswordForm.get('newPassword')?.touched && changePasswordForm.get('newPassword')?.invalid"
+            placeholder="Min 8 characters, uppercase, lowercase, digit, special char"
+          />
+          @if (changePasswordForm.get('newPassword')?.touched && changePasswordForm.get('newPassword')?.invalid) {
+            <span class="invalid-feedback">
+              Password must be at least 8 characters with 1 Uppercase, 1 Lowercase, 1 Number, and 1 Special char.
+            </span>
+          }
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label" for="newConfirmPassword">Confirm New Password <span class="required">*</span></label>
+          <input 
+            type="password" 
+            id="newConfirmPassword" 
+            formControlName="confirmPassword" 
+            class="form-control" 
+            [class.is-invalid]="changePasswordForm.get('confirmPassword')?.touched && changePasswordForm.get('confirmPassword')?.invalid"
+            placeholder="Re-enter new password"
+          />
+          @if (changePasswordForm.get('confirmPassword')?.touched && changePasswordForm.get('confirmPassword')?.invalid) {
+            <span class="invalid-feedback">
+              Passwords do not match.
+            </span>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-2" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Updating...
+          } @else {
+            <i class="fa-solid fa-shield-halved"></i> Update Password & Proceed
+          }
+        </button>
+      </form>
+    } @else {
+      <!-- Standard Login Form -->
+      <div class="form-header">
+        <i class="fa-solid fa-bolt logo-icon"></i>
+        <h2>Welcome Back</h2>
+        <p>Login to manage your electricity bills and complaints</p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="alert alert-danger">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label class="form-label" for="userId">User ID</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input 
+              type="text" 
+              id="userId" 
+              formControlName="userId" 
+              class="form-control pl-icon" 
+              [class.is-invalid]="loginForm.get('userId')?.touched && loginForm.get('userId')?.invalid"
+              placeholder="Enter User ID"
+            />
+          </div>
+          @if (loginForm.get('userId')?.touched && loginForm.get('userId')?.invalid) {
+            <span class="invalid-feedback">User ID is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input 
+              type="password" 
+              id="password" 
+              formControlName="password" 
+              class="form-control pl-icon" 
+              [class.is-invalid]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
+              placeholder="Enter Password"
+            />
+          </div>
+          @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+            <span class="invalid-feedback">Password is required</span>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-2" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Logging in...
+          } @else {
+            <i class="fa-solid fa-right-to-bracket"></i> Log In
+          }
+        </button>
+
+        <p class="footer-text">
+          New customer? <a [routerLink]="['/register']">Register Now</a>
+        </p>
+      </form>
+    }
+  </div>
+</div>

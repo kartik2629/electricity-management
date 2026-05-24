@@ -1,0 +1,130 @@
+<div class="add-customer-wrapper">
+  @if (createdCustomer()) {
+    <!-- Success state showing generated credentials -->
+    <div class="glass-card success-card text-center animate-fade-in">
+      <div class="success-icon">
+        <i class="fa-solid fa-circle-check text-success"></i>
+      </div>
+      <h2>Customer Registered Successfully!</h2>
+      <p class="subtitle text-muted mb-4">Please share these account credentials with the customer.</p>
+
+      @if (copySuccess()) {
+        <div class="alert alert-success mb-3 animate-fade-in" style="padding: 0.6rem 1rem; font-size: 0.85rem; max-width: 320px; margin: 0 auto 1.5rem auto;">
+          <i class="fa-solid fa-check"></i> Copied to clipboard!
+        </div>
+      }
+
+      <div class="credentials-box">
+        <div class="cred-row">
+          <span>Customer ID:</span>
+          <div>
+            <strong class="text-primary font-heading">{{ createdCustomer().customerId }}</strong>
+            <button (click)="copyToClipboard(createdCustomer().customerId)" class="btn-copy" title="Copy Customer ID"><i class="fa-regular fa-copy"></i></button>
+          </div>
+        </div>
+        <div class="cred-row">
+          <span>User ID (Username):</span>
+          <div>
+            <strong>{{ createdCustomer().userId }}</strong>
+            <button (click)="copyToClipboard(createdCustomer().userId)" class="btn-copy" title="Copy User ID"><i class="fa-regular fa-copy"></i></button>
+          </div>
+        </div>
+        <div class="cred-row">
+          <span>Default Password:</span>
+          <div>
+            <strong class="text-warning font-heading">{{ createdCustomer().defaultPassword }}</strong>
+            <button (click)="copyToClipboard(createdCustomer().defaultPassword)" class="btn-copy" title="Copy Password"><i class="fa-regular fa-copy"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="success-actions mt-4">
+        <button (click)="resetForm()" class="btn btn-primary">Register Another Customer</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Registration Form -->
+    <div class="view-header">
+      <h2><i class="fa-solid fa-user-plus text-warning"></i> Register New Customer</h2>
+      <p>Create a system profile for a new customer. A default password and unique Customer ID will be auto-generated.</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <div class="glass-card form-card">
+      <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
+        
+        <!-- User ID -->
+        <div class="form-group">
+          <label for="userId" class="form-label">User ID (Username)</label>
+          <input type="text" id="userId" formControlName="userId" class="form-control" placeholder="e.g. janesmith" />
+          @if (customerForm.get('userId')?.touched && customerForm.get('userId')?.invalid) {
+            @if (customerForm.get('userId')?.errors?.['required']) {
+              <span class="error-msg">Username is required.</span>
+            } @else if (customerForm.get('userId')?.errors?.['minlength']) {
+              <span class="error-msg">Username must be at least 3 characters long.</span>
+            } @else if (customerForm.get('userId')?.errors?.['pattern']) {
+              <span class="error-msg">Alphanumeric characters and underscores only.</span>
+            }
+          }
+        </div>
+
+        <!-- Full Name -->
+        <div class="form-group">
+          <label for="fullName" class="form-label">Full Name</label>
+          <input type="text" id="fullName" formControlName="fullName" class="form-control" placeholder="e.g. Jane Smith" />
+          @if (customerForm.get('fullName')?.touched && customerForm.get('fullName')?.invalid) {
+            @if (customerForm.get('fullName')?.errors?.['required']) {
+              <span class="error-msg">Full name is required.</span>
+            } @else if (customerForm.get('fullName')?.errors?.['minlength']) {
+              <span class="error-msg">Name must be at least 3 characters.</span>
+            }
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <input type="email" id="email" formControlName="email" class="form-control" placeholder="e.g. jane@example.com" />
+          @if (customerForm.get('email')?.touched && customerForm.get('email')?.invalid) {
+            @if (customerForm.get('email')?.errors?.['required']) {
+              <span class="error-msg">Email address is required.</span>
+            } @else if (customerForm.get('email')?.errors?.['email']) {
+              <span class="error-msg">Please enter a valid email address.</span>
+            }
+          }
+        </div>
+
+        <!-- Mobile Number -->
+        <div class="form-group">
+          <label for="mobileNumber" class="form-label">Mobile Number</label>
+          <input type="text" id="mobileNumber" formControlName="mobileNumber" class="form-control" placeholder="e.g. 9876543210" />
+          @if (customerForm.get('mobileNumber')?.touched && customerForm.get('mobileNumber')?.invalid) {
+            @if (customerForm.get('mobileNumber')?.errors?.['required']) {
+              <span class="error-msg">Mobile number is required.</span>
+            } @else if (customerForm.get('mobileNumber')?.errors?.['pattern']) {
+              <span class="error-msg">Mobile number must be exactly 10 digits.</span>
+            }
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions mt-4">
+          <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmitting()">
+            @if (isSubmitting()) {
+              <i class="fa-solid fa-spinner fa-spin"></i> Registering customer...
+            } @else {
+              Register Customer
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+</div>

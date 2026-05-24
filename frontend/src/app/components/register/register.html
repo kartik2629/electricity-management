@@ -1,0 +1,232 @@
+<div class="register-container">
+  <div class="glass-card register-card">
+    
+    <!-- Success Banner / View -->
+    @if (successData()) {
+      <div class="success-view">
+        <div class="success-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h2>Registration Successful!</h2>
+        <p class="success-intro">Welcome to the Electricity Management System. Your account has been created.</p>
+        
+        <div class="details-box">
+          <div class="detail-row">
+            <span class="label">Customer ID:</span>
+            <span class="value font-heading">{{ successData().customerId }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Name:</span>
+            <span class="value">{{ successData().customerName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Email:</span>
+            <span class="value">{{ successData().email }}</span>
+          </div>
+        </div>
+
+        <p class="guide-msg">Please proceed to login using your User ID and password.</p>
+        
+        <button type="button" class="btn btn-primary w-100" [routerLink]="['/login']">
+          <i class="fa-solid fa-right-to-bracket"></i> Go to Login
+        </button>
+      </div>
+    } @else {
+      <!-- Registration Form -->
+      <div class="form-header">
+        <i class="fa-solid fa-bolt logo-icon"></i>
+        <h2>Create an Account</h2>
+        <p>Register as a new customer with your 13-digit Consumer Number</p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="alert alert-danger">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="grid-2">
+          <!-- Consumer Number -->
+          <div class="form-group">
+            <label class="form-label" for="consumerNo">Consumer Number <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="consumerNo" 
+              formControlName="consumerNo" 
+              class="form-control" 
+              [class.is-invalid]="registerForm.get('consumerNo')?.touched && registerForm.get('consumerNo')?.invalid"
+              placeholder="e.g. 1000000000001"
+            />
+            @if (registerForm.get('consumerNo')?.touched && registerForm.get('consumerNo')?.invalid) {
+              <span class="invalid-feedback">
+                Please enter a valid Consumer Number.
+              </span>
+            }
+          </div>
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <label class="form-label" for="fullName">Full Name <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="fullName" 
+              formControlName="fullName" 
+              class="form-control" 
+              [class.is-invalid]="registerForm.get('fullName')?.touched && registerForm.get('fullName')?.invalid"
+              placeholder="Your Full Name"
+            />
+            @if (registerForm.get('fullName')?.touched && registerForm.get('fullName')?.invalid) {
+              <span class="invalid-feedback">
+                Full Name should accept only characters (max 50).
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">Billing Address <span class="required">*</span></label>
+          <textarea 
+            id="address" 
+            formControlName="address" 
+            class="form-control text-area" 
+            [class.is-invalid]="registerForm.get('address')?.touched && registerForm.get('address')?.invalid"
+            placeholder="Minimum 10 characters billing address"
+            rows="2"
+          ></textarea>
+          @if (registerForm.get('address')?.touched && registerForm.get('address')?.invalid) {
+            <span class="invalid-feedback">
+              Address length must be at least 10 characters.
+            </span>
+          }
+        </div>
+
+        <div class="grid-2">
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address <span class="required">*</span></label>
+            <input 
+              type="email" 
+              id="email" 
+              formControlName="email" 
+              class="form-control" 
+              [class.is-invalid]="registerForm.get('email')?.touched && registerForm.get('email')?.invalid"
+              placeholder="name@example.com"
+            />
+            @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
+              <span class="invalid-feedback">
+                Incorrect email format.
+              </span>
+            }
+          </div>
+
+          <!-- Mobile Number -->
+          <div class="form-group">
+            <label class="form-label" for="mobileNumber">Mobile Number <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="mobileNumber" 
+              formControlName="mobileNumber" 
+              class="form-control" 
+              [class.is-invalid]="registerForm.get('mobileNumber')?.touched && registerForm.get('mobileNumber')?.invalid"
+              placeholder="10-digit number"
+            />
+            @if (registerForm.get('mobileNumber')?.touched && registerForm.get('mobileNumber')?.invalid) {
+              <span class="invalid-feedback">
+                Mobile number is invalid.
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Customer Type -->
+          <div class="form-group">
+            <label class="form-label" for="customerType">Customer Type <span class="required">*</span></label>
+            <select id="customerType" formControlName="customerType" class="form-control">
+              <option value="RESIDENTIAL">Residential</option>
+              <option value="COMMERCIAL">Commercial</option>
+            </select>
+          </div>
+
+          <!-- Electrical Section -->
+          <div class="form-group">
+            <label class="form-label" for="electricalSection">Electrical Section <span class="required">*</span></label>
+            <select id="electricalSection" formControlName="electricalSection" class="form-control">
+              <option value="OFFICE">Office</option>
+              <option value="REGION">Region</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="userId">User ID <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="userId" 
+            formControlName="userId" 
+            class="form-control" 
+            [class.is-invalid]="registerForm.get('userId')?.touched && registerForm.get('userId')?.invalid"
+            placeholder="Min 5, Max 20 characters"
+          />
+          @if (registerForm.get('userId')?.touched && registerForm.get('userId')?.invalid) {
+            <span class="invalid-feedback">
+              User ID already exists. Please choose a different User ID (5 to 20 characters).
+            </span>
+          }
+        </div>
+
+        <div class="grid-2">
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="password">Password <span class="required">*</span></label>
+            <input 
+              type="password" 
+              id="password" 
+              formControlName="password" 
+              class="form-control" 
+              [class.is-invalid]="registerForm.get('password')?.touched && registerForm.get('password')?.invalid"
+              placeholder="Complexity required"
+            />
+            @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
+              <span class="invalid-feedback">
+                Password must be at least 8 characters with 1 Uppercase, 1 Lowercase, 1 Number, and 1 Special char.
+              </span>
+            }
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword">Confirm Password <span class="required">*</span></label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              formControlName="confirmPassword" 
+              class="form-control" 
+              [class.is-invalid]="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.invalid"
+              placeholder="Re-enter password"
+            />
+            @if (registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.invalid) {
+              <span class="invalid-feedback">
+                Passwords do not match.
+              </span>
+            }
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-2" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Registering...
+          } @else {
+            <i class="fa-solid fa-user-plus"></i> Register
+          }
+        </button>
+
+        <p class="footer-text">
+          Already have an account? <a [routerLink]="['/login']">Log In</a>
+        </p>
+      </form>
+    }
+  </div>
+</div>

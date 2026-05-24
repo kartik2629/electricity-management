@@ -1,0 +1,67 @@
+<div class="summary-wrapper">
+  <div class="view-header">
+    <h2><i class="fa-solid fa-cart-flatbed-suitcases"></i> Invoice Payment Checkout</h2>
+    <p>Review the selected billing items and choose your payment instrument.</p>
+  </div>
+
+  <div class="summary-grid">
+    <!-- Items list -->
+    <div class="glass-card summary-card">
+      <h3>Selected Invoices</h3>
+      <div class="selected-items-list">
+        @for (item of selectedBills(); track item.id) {
+          <div class="item-row">
+            <div class="item-meta">
+              <span class="item-title">{{ item.billingPeriod }} Bill</span>
+              <span class="item-sub">Consumer No: {{ item.consumer.consumerNo }}</span>
+            </div>
+            <div class="item-amounts">
+              <div class="amount-detail">
+                <span>Base Amount:</span>
+                <span>${{ item.billAmount | number:'1.2-2' }}</span>
+              </div>
+              @if (item.calculatedLateFee > 0) {
+                <div class="amount-detail text-danger">
+                  <span>Late Fee:</span>
+                  <span>+${{ item.calculatedLateFee | number:'1.2-2' }}</span>
+                </div>
+              }
+              <div class="amount-total">
+                <span>Payable:</span>
+                <span class="font-heading">${{ item.payableAmount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Payment controls -->
+    <div class="glass-card checkout-controls">
+      <h3>Checkout Summary</h3>
+      
+      <div class="grand-total-box">
+        <span class="label">Grand Total Payable</span>
+        <span class="value font-heading">${{ grandTotal() | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="form-group mt-3">
+        <label for="paymentMode" class="form-label">Choose Payment Instrument</label>
+        <select id="paymentMode" class="form-control" [ngModel]="paymentMode()" (change)="onModeChange($event)">
+          <option value="CARD">Credit / Debit Card</option>
+          <option value="NETBANKING">Net Banking</option>
+          <option value="UPI">UPI Payment</option>
+        </select>
+      </div>
+
+      <div class="checkout-actions mt-4">
+        <button (click)="proceedToPayment()" class="btn btn-primary w-100 mb-2">
+          Proceed to Pay <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <a [routerLink]="['/home/bills']" class="btn btn-secondary w-100 text-center">
+          Cancel & Go Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,145 @@
+<div class="bills-list-wrapper">
+  <div class="view-header">
+    <h2><i class="fa-solid fa-file-invoice-dollar"></i> Electricity Utility Invoices</h2>
+    <p>Select outstanding bills to make payments, or review your historical statements.</p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i> Loading invoice records...
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Unpaid Bills Container -->
+    <div class="glass-card bill-section">
+      <div class="section-title">
+        <h3>Outstanding Bills</h3>
+        <span class="badge badge-unpaid">{{ unpaidBills().length }} Pending</span>
+      </div>
+
+      @if (unpaidBills().length > 0) {
+        <div class="table-container">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">
+                  <label class="checkbox-container">
+                    <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll($event)" />
+                    <span class="checkmark"></span>
+                  </label>
+                </th>
+                <th>Consumer No</th>
+                <th>Billing Period</th>
+                <th>Due Date</th>
+                <th>Amount</th>
+                <th>Late Fee</th>
+                <th>Payable Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bill of unpaidBills(); track bill.id) {
+                <tr [class.selected-row]="selectedMap()[bill.id]">
+                  <td>
+                    <label class="checkbox-container">
+                      <input type="checkbox" [checked]="selectedMap()[bill.id]" (change)="toggleBill(bill.id)" />
+                      <span class="checkmark"></span>
+                    </label>
+                  </td>
+                  <td>{{ bill.consumer.consumerNo }}</td>
+                  <td class="period-cell">{{ bill.billingPeriod }}</td>
+                  <td [class.text-danger]="isOverdue(bill.dueDate)">
+                    {{ bill.dueDate | date:'mediumDate' }}
+                    @if (isOverdue(bill.dueDate)) {
+                      <span class="overdue-tag">Overdue</span>
+                    }
+                  </td>
+                  <td>${{ bill.billAmount | number:'1.2-2' }}</td>
+                  <td>
+                    @if (isOverdue(bill.dueDate) && bill.lateFee <= 0) {
+                      <span class="text-danger">$10.00*</span>
+                    } @else if (bill.lateFee > 0) {
+                      <span class="text-danger">${{ bill.lateFee | number:'1.2-2' }}</span>
+                    } @else {
+                      $0.00
+                    }
+                  </td>
+                  <td class="font-heading payable-cell">
+                    ${{ (bill.billAmount + (isOverdue(bill.dueDate) && bill.lateFee <= 0 ? 10.0 : bill.lateFee)) | number:'1.2-2' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Checkout Bar -->
+        <div class="checkout-bar">
+          <div class="checkout-total">
+            <span class="checkout-label">Total Amount Selected:</span>
+            <span class="checkout-value font-heading">${{ runningTotal() | number:'1.2-2' }}</span>
+          </div>
+          <button (click)="proceedToPay()" class="btn btn-primary proceed-btn" [disabled]="runningTotal() <= 0">
+            Proceed to Pay <i class="fa-solid fa-arrow-right-long"></i>
+          </button>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="fa-solid fa-circle-check text-success"></i>
+          <p>No outstanding invoices. Your account is fully paid!</p>
+        </div>
+      }
+    </div>
+
+    <!-- Paid Bills Container -->
+    <div class="glass-card bill-section mt-4">
+      <div class="section-title">
+        <h3>Payment History</h3>
+        <span class="badge badge-active">{{ paidBills().length }} Paid</span>
+      </div>
+
+      @if (paidBills().length > 0) {
+        <div class="table-container">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Consumer No</th>
+                <th>Billing Period</th>
+                <th>Amount Paid</th>
+                <th>Payment Date</th>
+                <th>Mode of Payment</th>
+                <th>Receipt</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bill of paidBills(); track bill.id) {
+                <tr>
+                  <td>{{ bill.consumer.consumerNo }}</td>
+                  <td>{{ bill.billingPeriod }}</td>
+                  <td>${{ (bill.billAmount + bill.lateFee) | number:'1.2-2' }}</td>
+                  <td>{{ bill.paymentDate | date:'mediumDate' }}</td>
+                  <td><span class="badge badge-active">{{ bill.modeOfPayment }}</span></td>
+                  <td>
+                    <span class="text-success text-bold">
+                      <i class="fa-solid fa-circle-check"></i> Paid
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="fa-solid fa-folder-open"></i>
+          <p>No previous transaction records found.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

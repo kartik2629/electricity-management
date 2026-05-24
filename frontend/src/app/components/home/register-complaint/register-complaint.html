@@ -1,0 +1,155 @@
+<div class="complaint-wrapper">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i> Loading form details...
+    </div>
+  } @else if (submittedComplaint()) {
+    <!-- Success Confirmation State -->
+    <div class="glass-card success-card text-center animate-fade-in">
+      <div class="success-icon">
+        <i class="fa-solid fa-circle-check text-success"></i>
+      </div>
+      <h2>Complaint Lodged Successfully!</h2>
+      <p class="subtitle text-muted">Your service ticket has been registered on our system.</p>
+
+      <div class="ticket-details-box mt-4">
+        <div class="detail-row">
+          <span>Ticket ID:</span>
+          <strong class="text-primary font-heading">{{ submittedComplaint().complaintId }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>Consumer Number:</span>
+          <span>{{ submittedComplaint().consumer.consumerNo }}</span>
+        </div>
+        <div class="detail-row">
+          <span>Complaint Category:</span>
+          <span>{{ submittedComplaint().category }}</span>
+        </div>
+        <div class="detail-row">
+          <span>Estimated Resolution:</span>
+          <span class="badge badge-resolution"><i class="fa-regular fa-clock"></i> {{ submittedComplaint().estimatedResolutionTime }}</span>
+        </div>
+      </div>
+
+      <div class="success-actions mt-4">
+        <a [routerLink]="['/home/complaint-status']" class="btn btn-primary">Track Ticket Status</a>
+        <button (click)="resetForm()" class="btn btn-secondary ml-3">File Another Complaint</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Register Complaint Form -->
+    <div class="view-header">
+      <h2><i class="fa-solid fa-triangle-exclamation"></i> Lodge a Service Complaint</h2>
+      <p>Have an issue with billing, power stability, or meter functionality? Register a ticket below.</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <div class="glass-card form-card">
+      <form [formGroup]="complaintForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Consumer Account Dropdown -->
+        <div class="form-group">
+          <label for="consumerNo" class="form-label">Select Consumer Account</label>
+          <select id="consumerNo" formControlName="consumerNo" class="form-control">
+            @for (c of consumers(); track c.id) {
+              <option [value]="c.consumerNo">{{ c.consumerNo }} - {{ c.address }}</option>
+            }
+          </select>
+          @if (complaintForm.get('consumerNo')?.touched && complaintForm.get('consumerNo')?.invalid) {
+            <span class="error-msg">Please select a consumer account.</span>
+          }
+        </div>
+
+        <!-- Complaint Type & Category Cascading -->
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="complaintType" class="form-label">Complaint Type</label>
+            <select id="complaintType" formControlName="complaintType" class="form-control">
+              <option value="" disabled selected>-- Select Type --</option>
+              @for (type of complaintTypes; track type.value) {
+                <option [value]="type.value">{{ type.label }}</option>
+              }
+            </select>
+            @if (complaintForm.get('complaintType')?.touched && complaintForm.get('complaintType')?.invalid) {
+              <span class="error-msg">Complaint type is required.</span>
+            }
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="category" class="form-label">Category</label>
+            <select id="category" formControlName="category" class="form-control" [attr.disabled]="availableCategories().length === 0 ? true : null">
+              <option value="" disabled selected>-- Select Category --</option>
+              @for (cat of availableCategories(); track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+            @if (complaintForm.get('category')?.touched && complaintForm.get('category')?.invalid) {
+              <span class="error-msg">Category is required.</span>
+            }
+          </div>
+        </div>
+
+        <!-- Preferred Contact Method -->
+        <div class="form-group">
+          <label class="form-label d-block">Preferred Contact Method</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" formControlName="preferredContactMethod" value="EMAIL" />
+              <span>Email</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" formControlName="preferredContactMethod" value="PHONE" />
+              <span>Phone</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Contact Details -->
+        <div class="form-group">
+          <label for="contactDetails" class="form-label">Contact Information</label>
+          <input type="text" id="contactDetails" formControlName="contactDetails" class="form-control" placeholder="Email address or phone number" />
+          @if (complaintForm.get('contactDetails')?.touched && complaintForm.get('contactDetails')?.invalid) {
+            <span class="error-msg">Please provide contact details.</span>
+          }
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="description" class="form-label">Description of Issue</label>
+            <span class="char-counter text-muted">
+              {{ complaintForm.get('description')?.value?.length || 0 }}/500
+            </span>
+          </div>
+          <textarea id="description" formControlName="description" class="form-control text-area" rows="5" placeholder="Describe the details of your issue..."></textarea>
+          @if (complaintForm.get('description')?.touched && complaintForm.get('description')?.invalid) {
+            @if (complaintForm.get('description')?.errors?.['required']) {
+              <span class="error-msg">Description is required.</span>
+            } @else if (complaintForm.get('description')?.errors?.['minlength']) {
+              <span class="error-msg">Description must be at least 10 characters.</span>
+            } @else if (complaintForm.get('description')?.errors?.['maxlength']) {
+              <span class="error-msg">Description cannot exceed 500 characters.</span>
+            }
+          }
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+            @if (isSubmitting()) {
+              <i class="fa-solid fa-spinner fa-spin"></i> Lodging ticket...
+            } @else {
+              Lodge Complaint
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

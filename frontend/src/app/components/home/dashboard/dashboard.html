@@ -1,0 +1,134 @@
+<div class="dashboard-wrapper">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i> Loading account details...
+    </div>
+  } @else {
+    <!-- Welcome Header -->
+    <header class="dashboard-header">
+      <div class="welcome-box">
+        <h1>Welcome back, {{ profileData()?.fullName }}</h1>
+        <p>Manage your electricity utility connections, view invoices, and track complaints</p>
+      </div>
+      <div class="date-badge">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span>Today is {{ todayDate | date:'longDate' }}</span>
+      </div>
+    </header>
+
+    <!-- Grid Layout -->
+    <div class="dashboard-grid">
+      <!-- Profile Card -->
+      <div class="glass-card profile-card">
+        <h3><i class="fa-solid fa-user-gear"></i> Account Profile</h3>
+        <div class="profile-details">
+          <div class="detail-row">
+            <span class="label">Account Number (ID)</span>
+            <span class="value font-heading">{{ profileData()?.customerId }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Registered Email</span>
+            <span class="value">{{ profileData()?.email }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Contact Number</span>
+            <span class="value">{{ profileData()?.mobileNumber }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Billing Address</span>
+            <span class="value address-text">{{ profileData()?.billingAddress }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Latest Bill Summary -->
+      <div class="glass-card bill-summary-card">
+        <h3><i class="fa-solid fa-file-invoice"></i> Latest Bill Summary</h3>
+        @if (latestBill()) {
+          <div class="bill-info">
+            <div class="bill-period">
+              <span class="period-title">{{ latestBill().billingPeriod }}</span>
+              <span class="badge" [class.badge-paid]="latestBill().status === 'PAID'" [class.badge-unpaid]="latestBill().status !== 'PAID'">
+                {{ latestBill().status }}
+              </span>
+            </div>
+            
+            <div class="bill-stats">
+              <div class="stat-box">
+                <span class="label">Amount Due</span>
+                <span class="stat-value font-heading">${{ latestBill().payableAmount | number:'1.2-2' }}</span>
+              </div>
+              <div class="stat-box">
+                <span class="label">Due Date</span>
+                <span class="stat-value text-warning">{{ latestBill().dueDate | date:'mediumDate' }}</span>
+              </div>
+            </div>
+
+            <div class="bill-actions">
+              @if (latestBill().status !== 'PAID') {
+                <button [routerLink]="['/home/bills']" class="btn btn-primary w-100">
+                  <i class="fa-solid fa-credit-card"></i> Pay Now
+                </button>
+              } @else {
+                <div class="paid-confirmation">
+                  <i class="fa-solid fa-circle-check"></i> This bill has been fully paid.
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="no-bill-state">
+            <i class="fa-solid fa-check-double"></i>
+            <p>No billing data found. You are all caught up!</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Quick Navigation Links -->
+    <section class="quick-nav-section">
+      <h3>Quick Actions</h3>
+      <div class="quick-nav-grid">
+        <a [routerLink]="['/home/bills']" class="nav-card">
+          <div class="nav-icon bg-blue">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div class="nav-text">
+            <h4>View & Pay Bills</h4>
+            <p>See outstanding bills and submit payments</p>
+          </div>
+        </a>
+
+        <a [routerLink]="['/home/history']" class="nav-card">
+          <div class="nav-icon bg-purple">
+            <i class="fa-solid fa-clock-history"></i>
+          </div>
+          <div class="nav-text">
+            <h4>Billing History</h4>
+            <p>View previous invoices and payments</p>
+          </div>
+        </a>
+
+        <a [routerLink]="['/home/register-complaint']" class="nav-card">
+          <div class="nav-icon bg-orange">
+            <i class="fa-solid fa-circle-exclamation"></i>
+          </div>
+          <div class="nav-text">
+            <h4>File a Complaint</h4>
+            <p>Report power failures or billing issues</p>
+          </div>
+        </a>
+
+        <a [routerLink]="['/home/complaint-status']" class="nav-card">
+          <div class="nav-icon bg-cyan">
+            <i class="fa-solid fa-route"></i>
+          </div>
+          <div class="nav-text">
+            <h4>Track Complaints</h4>
+            <p>Check status of registered service requests</p>
+          </div>
+        </a>
+      </div>
+    </section>
+  }
+</div>
